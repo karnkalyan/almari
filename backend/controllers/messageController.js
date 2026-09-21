@@ -1,20 +1,59 @@
 const prisma = require('../prismaClient');
+const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+
+const userSelect = { id: true, name: true, email: true, avatar: true };
+
+const looksLikeEmail = (value) => typeof value === 'string' && /\S+@\S+\.\S+/.test(value);
+
+const resolveConversationUserId = async ({ userId, guestName, guestEmail, phone }) => {
+  if (userId) {
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+    if (existingUser) return existingUser.id;
+  }
+
+  if (!guestEmail) return null;
+
+  const existingGuest = await prisma.user.findUnique({
+    where: { email: guestEmail },
+    select: { id: true },
+  });
+  if (existingGuest) return existingGuest.id;
+
+  const password = await bcrypt.hash(crypto.randomBytes(24).toString('hex'), 10);
+  const guest = await prisma.user.create({
+    data: {
+      name: guestName || guestEmail.split('@')[0],
+      email: guestEmail,
+      phone,
+      password,
+      role: 'customer',
+    },
+    select: { id: true },
+  });
+
+  return guest.id;
+};
 
 const getConversations = async (req, res) => {
   try {
     const userId = req.query.userId;
-    const where = userId ? { userId } : {};
+    const where = {
+      ...(userId ? { userId } : {}),
+      user: { id: { not: '' } },
+    };
     const conversations = await prisma.conversation.findMany({
       where,
       include: {
-        user: { select: { id: true, name: true, email: true, avatar: true } },
+        user: { select: userSelect },
         messages: { orderBy: { createdAt: 'desc' }, take: 1 },
       },
       orderBy: { updatedAt: 'desc' },
     });
-    // Filter out orphaned conversations if any (though onDelete: Cascade should prevent this)
-    const validConversations = conversations.filter(c => c.user !== null);
-    res.json(validConversations);
+    res.json(conversations);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -49,11 +88,30 @@ const getMessages = async (req, res) => {
 
 const createConversation = async (req, res) => {
   try {
-    const { userId, subject } = req.body;
+    let { userId, subject, guestName, guestEmail, name, email, phone } = req.body;
+
+    // Older chat clients accidentally sent (subject, email) as (userId, subject).
+    if (!guestEmail && !email && looksLikeEmail(subject) && userId) {
+      guestEmail = subject;
+      subject = userId;
+      userId = undefined;
+    }
+
+    const resolvedUserId = await resolveConversationUserId({
+      userId,
+      guestName: guestName || name,
+      guestEmail: guestEmail || email,
+      phone,
+    });
+
+    if (!resolvedUserId) {
+      return res.status(400).json({ message: 'A valid userId or guestEmail is required to create a conversation' });
+    }
+
     const conversation = await prisma.conversation.create({
-      data: { userId, subject: subject || 'General Inquiry', status: 'open' },
+      data: { userId: resolvedUserId, subject: subject || 'General Inquiry', status: 'open' },
       include: {
-        user: { select: { id: true, name: true, email: true, avatar: true } },
+        user: { select: userSelect },
         messages: true,
       },
     });
@@ -93,7 +151,7 @@ const updateConversationStatus = async (req, res) => {
       where: { id },
       data: { status },
       include: {
-        user: { select: { id: true, name: true, email: true, avatar: true } },
+        user: { select: userSelect },
         messages: { orderBy: { createdAt: 'desc' }, take: 1 },
       },
     });

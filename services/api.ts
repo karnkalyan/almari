@@ -682,11 +682,21 @@ class ApiService {
     return response.json();
   }
 
-  async createConversation(userId: string, subject: string): Promise<any> {
+  async createConversation(
+    userId: string | undefined,
+    subject: string,
+    guest?: { name?: string; email?: string; phone?: string }
+  ): Promise<any> {
     const response = await fetch(`${API_BASE_URL}/conversations`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
-      body: JSON.stringify({ userId, subject }),
+      body: JSON.stringify({
+        userId,
+        subject,
+        guestName: guest?.name,
+        guestEmail: guest?.email,
+        phone: guest?.phone,
+      }),
     });
     if (!response.ok) throw new Error('Failed to create conversation');
     return response.json();

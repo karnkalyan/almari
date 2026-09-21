@@ -39,24 +39,34 @@ exports.updateNotificationSetting = async (req, res) => {
 
 // Recipients
 exports.getRecipients = async (req, res) => {
-  const recipients = await prisma.notificationRecipient.findMany();
-  res.json({
-    emails: recipients.filter(r => r.type === 'email').map(r => r.value),
-    numbers: recipients.filter(r => r.type === 'sms').map(r => r.value)
-  });
+  try {
+    // Safely check if the model exists in the prisma instance
+    const model = prisma.notificationRecipient || prisma['notificationRecipient'];
+    if (!model) return res.json({ emails: [], numbers: [] });
+    
+    const recipients = await model.findMany();
+    res.json({
+      emails: recipients.filter(r => r.type === 'email').map(r => r.value),
+      numbers: recipients.filter(r => r.type === 'sms').map(r => r.value)
+    });
+  } catch (e) {
+    res.json({ emails: [], numbers: [] });
+  }
 };
 exports.updateRecipients = async (req, res) => {
-  // Clear existing
-  await prisma.notificationRecipient.deleteMany({});
+  const model = prisma.notificationRecipient || prisma['notificationRecipient'];
+  if (!model) return res.status(500).json({ error: 'Model not found' });
+
+  await model.deleteMany({});
   
   const emails = req.body.emails || [];
   const numbers = req.body.numbers || [];
 
   for (const email of emails) {
-    if (email) await prisma.notificationRecipient.create({ data: { type: 'email', value: email } });
+    if (email) await model.create({ data: { type: 'email', value: email } });
   }
   for (const num of numbers) {
-    if (num) await prisma.notificationRecipient.create({ data: { type: 'sms', value: num } });
+    if (num) await model.create({ data: { type: 'sms', value: num } });
   }
   
   res.json({ success: true });
@@ -78,6 +88,17 @@ exports.updateSmtpSettings = async (req, res) => {
   res.json(updated);
 };
 
+exports.deleteEmailTemplate = async (req, res) => {
+  await prisma.emailTemplate.delete({ where: { id: req.params.id } });
+  res.json({ success: true });
+};
+
+exports.deleteSmsTemplate = async (req, res) => {
+  await prisma.smsTemplate.delete({ where: { id: req.params.id } });
+  res.json({ success: true });
+};
+
+
 // SMS Gateway
 exports.getSmsGateways = async (req, res) => {
   const gateways = await prisma.smsGatewaySetting.findMany();
@@ -85,10 +106,16 @@ exports.getSmsGateways = async (req, res) => {
 };
 exports.updateSmsGateway = async (req, res) => {
   let updated;
-  if (req.params.id && req.params.id !== 'new') {
-    updated = await prisma.smsGatewaySetting.update({ where: { id: req.params.id }, data: req.body });
+  // Support both POST with body and dynamic params
+  const id = req.params.id || req.body.id;
+  const data = { ...req.body };
+  delete data.id;
+
+  if (id && id !== 'new') {
+    updated = await prisma.smsGatewaySetting.update({ where: { id }, data });
   } else {
-    updated = await prisma.smsGatewaySetting.create({ data: req.body });
+    updated = await prisma.smsGatewaySetting.create({ data });
   }
   res.json(updated);
 };
+

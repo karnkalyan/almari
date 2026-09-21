@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   console.log('🚀 Starting deep seed process...');
-  
+
   // 1. Cleanup
   console.log('🧹 Cleaning up existing data...');
   await prisma.productFlagAssignment.deleteMany();
@@ -21,6 +21,8 @@ async function main() {
   await prisma.blogPost.deleteMany();
   await prisma.chatMessage.deleteMany();
   await prisma.conversation.deleteMany();
+  await prisma.homepageSectionItem.deleteMany();
+  await prisma.homepageSection.deleteMany();
   await prisma.address.deleteMany();
   // Do NOT delete users by default to avoid losing access, but we will upsert some.
 
@@ -28,7 +30,7 @@ async function main() {
   console.log('👤 Seeding administrative and customer users...');
   const bcrypt = require('bcryptjs');
   const hashedAdminPassword = await bcrypt.hash('admin123', 10);
-  
+
   const seedUsers = [
     { email: 'admin@almari.com', name: 'Almari Admin', role: 'admin', password: hashedAdminPassword },
     { email: 'super@almari.com', name: 'Super Admin', role: 'super_admin', password: hashedAdminPassword },
@@ -47,8 +49,8 @@ async function main() {
   // 2. Categories
   console.log('📁 Creating categories...');
   const catNames = [
-    'Fruits & Vegetables', 'Breakfast & Dairy', 'Electronics', 'Meats & Seafood', 
-    'Beverages', 'Fashion & Clothing', 'Home & Furniture', 'Healthcare', 
+    'Fruits & Vegetables', 'Breakfast & Dairy', 'Electronics', 'Meats & Seafood',
+    'Beverages', 'Fashion & Clothing', 'Home & Furniture', 'Healthcare',
     'Grocery & Staples', 'Household Needs'
   ];
   const categoryMap = {};
@@ -192,7 +194,7 @@ async function main() {
   const siteConfig = {
     storeName: "CineDaraz",
     logoText: "CINEDARAZ",
-    primaryColor: "#002f4a",
+    primaryColor: "#0b53b1",
     accentColor: "#E5A823",
     secondaryColor: "#64748b",
     tertiaryColor: "#94a3b8",
@@ -259,7 +261,20 @@ async function main() {
         enabled: true
       }
     ],
+    // About Us Page Data
+    about_hero_title: "About CineDaraz",
+    about_hero_subtitle: "Your trusted destination for premium organic food and high-quality lifestyle products in Nepal.",
+    about_hero_image: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1200",
+    about_story_title: "Elevating Shopping Standards in Nepal since 2025",
+    about_story_content: "The most premium online shopping destination in Nepal. Quality guaranteed. Almari started with a simple mission: to provide every household in Nepal with access to genuine, high-quality products at fair prices.",
+    about_story_image: "https://images.unsplash.com/photo-1516594798947-e65505dbb29d?auto=format&fit=crop&q=80&w=1200",
+    stat_customers: "50k+",
+    stat_products: "10k+",
+    stat_delivery: "24h",
+    stat_support: "24/7",
+
     heroBottomCards: [
+
       { title: 'Organic Foods', badge: 'FARM FRESH', image: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&q=80&w=400', eyebrow: 'Healthy' },
       { title: 'Best Gadgets', badge: 'LATEST TECH', image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&q=80&w=400', eyebrow: 'Smart' },
       { title: 'Winter Sale', badge: 'UP TO 50%', image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=400', eyebrow: 'Deals' },
@@ -375,26 +390,39 @@ async function main() {
     { sectionType: 'Hero Slider', title: 'Main Hero Slider', position: 0 },
     { sectionType: 'Hero Bottom Promo Cards', title: 'Promo Cards', position: 1 },
     { sectionType: 'Shop by Brand', title: 'Top Brands', position: 2 },
-    { sectionType: 'Featured Categories', title: 'Categories', position: 3 },
-    { sectionType: 'Featured Products', title: 'Handpicked Featured', position: 4 },
+    { sectionType: 'Featured Products', title: 'Handpicked Featured', position: 3 },
+    { sectionType: 'Promo Banner', title: 'Summer Collection Sale', subtitle: 'Up to 50% Off on All items', bannerImage: 'https://images.unsplash.com/photo-1441984908746-d47b8b240bd8?auto=format&fit=crop&q=80&w=1200', position: 4 },
     { sectionType: 'Best Sellers', title: 'Best Sellers', position: 5 },
-    { sectionType: 'Newsletter', title: 'Join Newsletter', position: 6, isActive: false },
-    { sectionType: 'Testimonials', title: 'Customer Reviews', position: 7, isActive: true },
-    { sectionType: 'Footer CTA', title: 'Footer Banner', position: 8, isActive: false }
+    { sectionType: 'New Arrivals', title: 'New Arrivals', position: 6 },
+    { sectionType: 'Promo Banner', title: 'Exclusive Tech Deals', subtitle: 'Latest Gadgets at Best Prices', bannerImage: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&q=80&w=1200', position: 7 },
+    { sectionType: 'Flash Deals', title: 'Hot Flash Deals', position: 8 },
+    { sectionType: 'Newsletter', title: 'Join Newsletter', position: 9, isActive: false },
+    { sectionType: 'Testimonials', title: 'Customer Reviews', position: 10, isActive: true },
+    { sectionType: 'Footer CTA', title: 'Footer Banner', position: 11, isActive: false }
   ];
 
   for (const sec of defaultSections) {
     const section = await prisma.homepageSection.upsert({
       where: { slug: sec.title.toLowerCase().replace(/ /g, '-') },
-      update: { position: sec.position, isActive: true },
+      update: {
+        position: sec.position,
+        isActive: sec.isActive !== undefined ? sec.isActive : true,
+        subtitle: sec.subtitle || null,
+        bannerImage: sec.bannerImage || null
+      },
       create: {
         title: sec.title,
         slug: sec.title.toLowerCase().replace(/ /g, '-'),
         sectionType: sec.sectionType,
         position: sec.position,
-        isActive: true
+        isActive: sec.isActive !== undefined ? sec.isActive : true,
+        subtitle: sec.subtitle || null,
+        bannerImage: sec.bannerImage || null
       }
     });
+
+    // Clear existing items to prevent duplication
+    await prisma.homepageSectionItem.deleteMany({ where: { sectionId: section.id } });
 
     // Seed items for specific sections
     if (sec.sectionType === 'Hero Slider') {
@@ -425,26 +453,26 @@ async function main() {
       }
     }
 
-    if (['Featured Products', 'Best Sellers', 'Trending Items'].includes(sec.sectionType)) {
+    if (['Featured Products', 'Best Sellers', 'Trending Items', 'New Arrivals', 'Flash Deals'].includes(sec.sectionType)) {
       // Add side cards for product sections
       await prisma.homepageSectionItem.create({
-        data: { 
-          sectionId: section.id, 
-          position: -1, 
-          title: 'Premium Selection', 
-          subtitle: 'HANDPICKED', 
-          image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=400', 
-          buttonUrl: '/shop' 
+        data: {
+          sectionId: section.id,
+          position: -1,
+          title: 'Premium Selection',
+          subtitle: 'HANDPICKED',
+          image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=400',
+          buttonUrl: '/shop'
         }
       });
       await prisma.homepageSectionItem.create({
-        data: { 
-          sectionId: section.id, 
-          position: 99, 
-          title: 'Special Deals', 
-          subtitle: 'LIMITED TIME', 
-          image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=400', 
-          buttonUrl: '/shop' 
+        data: {
+          sectionId: section.id,
+          position: 99,
+          title: 'Special Deals',
+          subtitle: 'LIMITED TIME',
+          image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=400',
+          buttonUrl: '/shop'
         }
       });
     }
@@ -459,7 +487,7 @@ async function main() {
     for (let i = 0; i < 15; i++) {
       const user = users[i % users.length];
       const product = products[i % products.length];
-      
+
       // Create Address if not exists
       const address = await prisma.address.create({
         data: {
@@ -497,21 +525,37 @@ async function main() {
           comment: 'I really enjoyed using this product. The quality is top-notch and delivery was fast.',
           status: 'approved'
         }
-      }).catch(() => {}); // Ignore duplicate review errors
+      }).catch(() => { }); // Ignore duplicate review errors
     }
   }
 
   // 9. Communication Hub Seeding
   console.log('✉️ Seeding communication templates and settings...');
-  
+
   const emailTemplates = [
-    { name: 'new_order', subject: 'New Order Received - {order_id}', body: '<h1>New Order</h1><p>Hello {customer_name}, your order {order_id} has been received.</p>' },
-    { name: 'order_status', subject: 'Order Update - {order_id}', body: '<h1>Order Update</h1><p>Your order {order_id} is now {status}.</p>' },
-    { name: 'new_user', subject: 'Welcome to CineDaraz!', body: '<h1>Welcome</h1><p>Hello {customer_name}, welcome to our store.</p>' }
+    { name: 'new_order_admin', subject: 'NEW ORDER ALERT - #{order_id}', body: '<h1>New Order Received</h1><p>Admin, you have a new order #{order_id} from {customer_name}. Total: NPR {total}.</p>' },
+    { name: 'new_order_customer', subject: 'Order Confirmed - #{order_id}', body: '<h1>Thank You!</h1><p>Hello {customer_name}, your order #{order_id} has been received and is being processed.</p>' },
+    { name: 'order_status', subject: 'Order Update - #{order_id}', body: '<h1>Order Update</h1><p>Your order #{order_id} is now {status}.</p>' },
+    { name: 'new_user', subject: 'Welcome to CineDaraz!', body: '<h1>Welcome</h1><p>Hello {customer_name}, welcome to our store.</p>' },
+    { name: 'low_stock', subject: 'Low Stock Alert: {product_name}', body: '<h1>Inventory Alert</h1><p>Product {product_name} (SKU: {sku}) is running low on stock. Only {stock} left.</p>' }
   ];
 
   for (const t of emailTemplates) {
     await prisma.emailTemplate.upsert({
+      where: { name: t.name },
+      update: t,
+      create: t
+    });
+  }
+
+  const smsTemplates = [
+    { name: 'new_order_admin', body: 'New Order: #{order_id} from {customer_name}. Total: {total}.' },
+    { name: 'new_order_customer', body: 'Hi {customer_name}, your order #{order_id} is confirmed. Team CineDaraz.' },
+    { name: 'order_status', body: 'Order #{order_id} status updated to {status}.' }
+  ];
+
+  for (const t of smsTemplates) {
+    await prisma.smsTemplate.upsert({
       where: { name: t.name },
       update: t,
       create: t
@@ -531,6 +575,47 @@ async function main() {
       create: e
     });
   }
+
+  // 10. Admin Notification Recipients
+  console.log('👥 Seeding notification recipients...');
+  const recipients = [
+    { type: 'email', value: 'admin@cinedaraz.com', name: 'Primary Admin', isActive: true },
+    { type: 'email', value: 'orders@cinedaraz.com', name: 'Order Processing', isActive: true },
+    { type: 'email', value: 'support@cinedaraz.com', name: 'Customer Support', isActive: true },
+    { type: 'sms', value: '9801234567', name: 'Admin Primary SMS', isActive: true },
+    { type: 'sms', value: '9841000000', name: 'Operations SMS', isActive: true }
+  ];
+
+  for (const r of recipients) {
+    await prisma.notificationRecipient.upsert({
+      where: { id: `recipient-${r.value}` },
+      update: r,
+      create: { id: `recipient-${r.value}`, ...r }
+    }).catch(() => { });
+  }
+
+  // 11. SMS Gateway Seeding (Aakash SMS Nepal)
+  console.log('📲 Seeding SMS Gateways (Aakash SMS)...');
+  await prisma.smsGatewaySetting.upsert({
+    where: { id: 'aakash-sms-default' },
+    update: {
+      providerName: 'Aakash SMS (Nepal)',
+      gatewayUrl: 'https://sms.aakashsms.com/sms/v3/send',
+      apiKey: 'YOUR_AAKASH_TOKEN',
+      senderId: 'CineDaraz',
+      authToken: 'YOUR_AAKASH_TOKEN',
+      isActive: true
+    },
+    create: {
+      id: 'aakash-sms-default',
+      providerName: 'Aakash SMS (Nepal)',
+      gatewayUrl: 'https://sms.aakashsms.com/sms/v3/send',
+      apiKey: 'YOUR_AAKASH_TOKEN',
+      senderId: 'CineDaraz',
+      authToken: 'YOUR_AAKASH_TOKEN',
+      isActive: true
+    }
+  });
 
   console.log('✅ Seeding complete!');
 }

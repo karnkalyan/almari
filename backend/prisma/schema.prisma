@@ -475,9 +475,12 @@ model NotificationSetting {
   customerEmail   Boolean  @default(true)
   adminSms        Boolean  @default(false)
   customerSms     Boolean  @default(false)
+  emailTemplateName String?
+  smsTemplateName String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
 
 model SmtpSetting {
   id              String   @id @default(cuid()) @db.VarChar(25)

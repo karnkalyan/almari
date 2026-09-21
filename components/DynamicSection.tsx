@@ -11,24 +11,24 @@ export const DynamicSection: React.FC<{ section: any; products: any[]; brands: a
     case 'Hero Slider':
       const sliderItems = section.items || [];
       const mainSlide = sliderItems[0];
-      const sideCards = sliderItems.slice(1, 4); // Take up to 3 cards
+      const sideCards = sliderItems.slice(1, 4); // Exactly 3 cards
 
       return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12">
           {/* Main Slider Area */}
-          <div className={`${sideCards.length > 0 ? 'lg:col-span-9' : 'lg:col-span-12'} relative rounded-sm overflow-hidden shadow-xl h-[400px] md:h-[550px] bg-slate-100`}>
+          <div className={`${sideCards.length > 0 ? 'lg:col-span-9' : 'lg:col-span-12'} relative rounded-sm overflow-hidden shadow-2xl h-[400px] md:h-[550px] bg-slate-100 group`}>
             {mainSlide && (
               <div className="absolute inset-0">
-                <img src={mainSlide.image} className="w-full h-full object-cover" alt="" />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent flex items-center p-8 md:p-16">
-                  <div className="max-w-xl text-white">
-                    <span className="inline-block px-4 py-1.5 rounded-sm text-[10px] font-black uppercase mb-4 tracking-[0.2em] bg-[var(--brand-accent)] text-slate-900 shadow-lg">{mainSlide.subtitle}</span>
-                    <h1 className="text-4xl md:text-6xl font-black mb-8 leading-tight tracking-tight">{mainSlide.title}</h1>
+                <img src={mainSlide.image} className="w-full h-full object-cover transition-transform duration-[20s] group-hover:scale-110" alt="" />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent flex items-center p-8 md:p-20">
+                  <div className="max-w-2xl text-white">
+                    <span className="inline-block px-5 py-2 rounded-sm text-[11px] font-black uppercase mb-6 tracking-[0.3em] bg-[var(--brand-accent)] text-slate-900 shadow-xl animate-fade-in-down">{mainSlide.subtitle}</span>
+                    <h1 className="text-5xl md:text-7xl font-black mb-10 leading-[1.1] tracking-tighter animate-fade-in-up">{mainSlide.title}</h1>
                     <button 
                       onClick={() => navigate(mainSlide.buttonUrl || '/shop')}
-                      className="px-10 py-4 bg-white text-slate-900 rounded-sm font-black text-[11px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-2xl"
+                      className="px-12 py-5 bg-white text-slate-900 rounded-sm font-black text-[12px] uppercase tracking-[0.2em] hover:bg-[var(--brand-accent)] hover:text-white transition-all shadow-2xl active:scale-95"
                     >
-                      {mainSlide.buttonText || 'Discover Collection'}
+                      {mainSlide.buttonText || 'Discover Now'}
                     </button>
                   </div>
                 </div>
@@ -36,22 +36,20 @@ export const DynamicSection: React.FC<{ section: any; products: any[]; brands: a
             )}
           </div>
 
-          {/* Side Cards Area */}
+          {/* Side Cards Area - 3 Cards */}
           {sideCards.length > 0 && (
             <div className="lg:col-span-3 flex flex-col gap-4">
               {sideCards.map((card: any, i: number) => (
                 <div 
                   key={i} 
-                  className="flex-1 relative rounded-sm overflow-hidden p-6 group cursor-pointer border border-gray-100 shadow-md h-[170px]"
+                  className="flex-1 relative rounded-sm overflow-hidden group cursor-pointer border border-gray-100 shadow-lg min-h-[170px]"
                   onClick={() => navigate(card.buttonUrl || '/shop')}
                 >
                   <img src={card.image} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end">
-                    <div className="p-2 relative z-10">
-                      <span className="text-[9px] font-black uppercase tracking-[0.2em] block mb-1 text-[var(--brand-accent)]">{card.subtitle}</span>
-                      <h3 className="text-base font-black text-white leading-tight mb-3 line-clamp-2">{card.title}</h3>
-                      <div className="w-8 h-0.5 bg-white group-hover:w-16 transition-all duration-500"></div>
-                    </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-5">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] block mb-1 text-[var(--brand-accent)]">{card.subtitle}</span>
+                    <h3 className="text-lg font-black text-white leading-tight mb-3 line-clamp-2">{card.title}</h3>
+                    <div className="w-10 h-1 bg-[var(--brand-accent)] group-hover:w-20 transition-all duration-500"></div>
                   </div>
                 </div>
               ))}
@@ -62,14 +60,14 @@ export const DynamicSection: React.FC<{ section: any; products: any[]; brands: a
 
     case 'Hero Bottom Promo Cards':
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
           {section.items?.map((item: any, i: number) => (
-            <div key={i} className="relative h-44 rounded-2xl overflow-hidden group cursor-pointer shadow-sm border border-gray-100" onClick={() => navigate(item.buttonUrl || '/shop')}>
-               <img src={item.image} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt="" />
-               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-5 flex flex-col justify-end">
-                  <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#E5A823] mb-1">{item.subtitle}</span>
-                  <h4 className="text-xl font-black text-white mb-2">{item.title}</h4>
-                  <p className="text-[10px] font-black text-white/70 uppercase tracking-widest">{item.buttonText}</p>
+            <div key={i} className="relative h-48 rounded-sm overflow-hidden group cursor-pointer shadow-xl border border-gray-100" onClick={() => navigate(item.buttonUrl || '/shop')}>
+               <img src={item.image} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="" />
+               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent p-6 flex flex-col justify-end">
+                  <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[var(--brand-accent)] mb-2">{item.subtitle}</span>
+                  <h4 className="text-xl font-black text-white mb-3">{item.title}</h4>
+                  <p className="text-[11px] font-black text-white/80 uppercase tracking-widest border-b-2 border-transparent group-hover:border-[var(--brand-accent)] w-fit transition-all">{item.buttonText}</p>
                </div>
             </div>
           ))}
@@ -94,45 +92,47 @@ export const DynamicSection: React.FC<{ section: any; products: any[]; brands: a
       const rightCard = section.items?.find((item: any) => item.position === 99);
 
       return (
-        <div className="mb-16" style={{ backgroundColor: section.backgroundColor, padding: section.padding }}>
-          <div className="flex items-center justify-between mb-8 border-b border-gray-200 pb-4">
-             <div className="flex items-center gap-3">
-                <div className="w-1.5 h-6 bg-[var(--brand-primary)]"></div>
+        <div className="mb-20" style={{ backgroundColor: section.backgroundColor, padding: section.padding }}>
+          <div className="flex items-center justify-between mb-10 pb-2">
+             <div className="flex items-center gap-4">
+                <div className="w-2 h-8 bg-slate-900"></div>
                 <div>
-                   <h2 className="text-xl font-black text-slate-800 tracking-tight uppercase" style={{ color: section.textColor }}>{section.title}</h2>
-                   {section.subtitle && <p className="text-sm text-gray-500 font-medium mt-1">{section.subtitle}</p>}
+                   <h2 className="text-2xl font-black text-slate-900 tracking-tighter uppercase" style={{ color: section.textColor }}>{section.title}</h2>
+                   {section.subtitle && <p className="text-[11px] text-gray-500 font-black uppercase tracking-widest mt-1">{section.subtitle}</p>}
                 </div>
              </div>
-             <button onClick={() => navigate('/shop')} className="hidden sm:flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-[var(--brand-primary)] transition-colors">
-               VIEW ALL <ArrowRight size={14} />
+             <button onClick={() => navigate('/shop')} className="hidden sm:flex items-center gap-3 text-[12px] font-black text-slate-900 uppercase tracking-[0.2em] hover:text-[var(--brand-accent)] transition-all group">
+               VIEW COLLECTION <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
              </button>
           </div>
           
-          <div className="flex flex-col lg:flex-row gap-6">
-            {leftCard && (
-               <div className="hidden lg:block w-64 flex-shrink-0 h-[450px] rounded-sm overflow-hidden relative group cursor-pointer shadow-md" onClick={() => navigate(leftCard.buttonUrl || '/shop')}>
-                  <img src={leftCard.image} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt="" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-6 flex flex-col justify-end">
-                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/90 mb-2">{leftCard.subtitle}</span>
-                     <h4 className="text-xl font-black text-white leading-tight mb-4">{leftCard.title}</h4>
-                     <button className="w-fit px-6 py-2 bg-white text-slate-900 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-colors">SHOP NOW</button>
+          <div className="flex flex-col lg:flex-row gap-4 items-start">
+            {/* Show Left Card ONLY if position is even AND leftCard exists */}
+            {leftCard && (section.position % 2 === 0) && (
+               <div className="hidden lg:block w-[220px] flex-shrink-0 h-[450px] rounded-sm overflow-hidden relative group cursor-pointer shadow-2xl border border-gray-100" onClick={() => navigate(leftCard.buttonUrl || '/shop')}>
+                  <img src={leftCard.image} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent p-6 flex flex-col justify-end">
+                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--brand-accent)] mb-2">{leftCard.subtitle}</span>
+                     <h4 className="text-xl font-black text-white leading-tight mb-5">{leftCard.title}</h4>
+                     <button className="w-full py-3 bg-white text-slate-900 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-[var(--brand-accent)] hover:text-white transition-all shadow-lg">SHOP NOW</button>
                   </div>
                </div>
             )}
             
-            <div className="flex-1 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-              {displayProducts.slice(0, 8).map(product => (
+            <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+              {displayProducts.slice(0, 12).map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
 
-            {rightCard && (
-               <div className="hidden lg:block w-64 flex-shrink-0 h-[450px] rounded-sm overflow-hidden relative group cursor-pointer shadow-md" onClick={() => navigate(rightCard.buttonUrl || '/shop')}>
-                  <img src={rightCard.image} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt="" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-6 flex flex-col justify-end">
-                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/90 mb-2">{rightCard.subtitle}</span>
-                     <h4 className="text-xl font-black text-white leading-tight mb-4">{rightCard.title}</h4>
-                     <button className="w-fit px-6 py-2 bg-white text-slate-900 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-colors">SHOP NOW</button>
+            {/* Show Right Card ONLY if position is odd AND rightCard exists OR if position is even but no left card */}
+            {rightCard && (section.position % 2 !== 0 || !leftCard) && (
+               <div className="hidden lg:block w-[220px] flex-shrink-0 h-[450px] rounded-sm overflow-hidden relative group cursor-pointer shadow-2xl border border-gray-100" onClick={() => navigate(rightCard.buttonUrl || '/shop')}>
+                  <img src={rightCard.image} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent p-6 flex flex-col justify-end">
+                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--brand-accent)] mb-2">{rightCard.subtitle}</span>
+                     <h4 className="text-xl font-black text-white leading-tight mb-5">{rightCard.title}</h4>
+                     <button className="w-full py-3 bg-white text-slate-900 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-[var(--brand-accent)] hover:text-white transition-all shadow-lg">SHOP NOW</button>
                   </div>
                </div>
             )}
@@ -140,10 +140,23 @@ export const DynamicSection: React.FC<{ section: any; products: any[]; brands: a
         </div>
       );
       
+    case 'Promo Banner':
+      return (
+        <div className="mb-20 relative h-[150px] md:h-[200px] rounded-sm overflow-hidden group cursor-pointer shadow-xl border border-gray-100" onClick={() => navigate(section.items?.[0]?.buttonUrl || '/shop')}>
+           <img src={section.bannerImage || section.items?.[0]?.image || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=1200"} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt="" />
+           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent flex items-center p-12">
+              <div className="text-white">
+                 <h2 className="text-2xl md:text-4xl font-black mb-2 leading-tight uppercase tracking-tighter">{section.title}</h2>
+                 <p className="text-sm md:text-lg text-white/80 font-bold">{section.subtitle}</p>
+              </div>
+           </div>
+        </div>
+      );
+      
     case 'Shop by Brand':
       return (
         <div className="mb-16">
-          <div className="flex items-center justify-between mb-6 border-b border-gray-200 pb-4">
+          <div className="flex items-center justify-between mb-6 pb-2">
              <div className="flex items-center gap-3">
                 <div className="w-1.5 h-6 bg-[var(--brand-primary)]"></div>
                 <h2 className="text-xl font-black text-slate-800 tracking-tight uppercase">{section.title || 'Shop by Brand'}</h2>

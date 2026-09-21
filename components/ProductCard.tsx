@@ -104,8 +104,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
   }
 
   return (
-    <div className="group bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300 flex flex-col h-[220px] w-full mx-auto relative max-w-[160px]">
-      <div className="relative h-[110px] bg-gray-50/20 overflow-hidden">
+    <div className="group bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300 flex flex-col h-full w-full relative">
+      <div className="relative h-[150px] bg-gray-50/20 overflow-hidden">
         {renderFlags()}
 
         {/* Floating Actions */}
@@ -115,7 +115,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
         </div>
 
         {/* Product Image */}
-        <div className="absolute inset-0 p-3 cursor-pointer" onClick={() => navigate(`/product/${product.id}`)}>
+        <div className="absolute inset-0 cursor-pointer" onClick={() => navigate(`/product/${product.id}`)}>
           <img 
             src={product.primaryImage || product.image} 
             alt={product.name} 

@@ -221,27 +221,27 @@ export interface BlogPost {
 }
 
 export interface SiteCustomization {
-  storeName: string;
-  logoText: string;
+  storeName?: string;
+  logoText?: string;
   logoImage?: string;
-  primaryColor: string;
-  accentColor: string;
-  topBarText: string;
+  primaryColor?: string;
+  accentColor?: string;
+  topBarText?: string;
   topBarEnabled?: boolean;
   topBarBackgroundColor?: string;
   topBarTextColor?: string;
   topBarShowAdminLink?: boolean;
   topBarShowLanguage?: boolean;
   topBarShowCurrency?: boolean;
-  supportPhone: string;
-  supportEmail: string;
+  supportPhone?: string;
+  supportEmail?: string;
   adminAlertEmail?: string;
-  address: string;
-  footerAbout: string;
-  heroTitle: string;
-  heroSubtitle: string;
-  heroImage: string;
-  heroBadge: string;
+  address?: string;
+  footerAbout?: string;
+  heroTitle?: string;
+  heroSubtitle?: string;
+  heroImage?: string;
+  heroBadge?: string;
   secondaryColor?: string;
   tertiaryColor?: string;
   quaternaryColor?: string;
@@ -275,12 +275,12 @@ export interface SiteCustomization {
   heroSlides?: HeroSlide[];
   heroSideCards?: HeroSideCard[];
   heroBottomCards?: any[];
-  flashPopupEnabled: boolean;
-  flashPopupTitle: string;
-  flashPopupText: string;
+  flashPopupEnabled?: boolean;
+  flashPopupTitle?: string;
+  flashPopupText?: string;
   flashPopupImage?: string;
-  promoBanners: { title: string; image: string; color: string; link?: string; badge?: string; position?: 'afterHero' | 'afterProducts' | 'beforeFooter'; showOnHomepage?: boolean }[];
-  navItems: { label: string; url: string }[];
+  promoBanners?: { title: string; image: string; color: string; link?: string; badge?: string; position?: 'afterHero' | 'afterProducts' | 'beforeFooter'; showOnHomepage?: boolean }[];
+  navItems?: { label: string; url: string }[];
   footerColumns?: FooterColumn[];
   footerBusinessHours?: string;
   footerNewsletterTitle?: string;
@@ -320,6 +320,19 @@ export interface SiteCustomization {
   newsletters?: { email: string; subscribedAt: string }[];
   favicon?: string;
   metaTitle?: string;
+  about_hero_title?: string;
+  about_hero_subtitle?: string;
+  about_hero_image?: string;
+  about_story_title?: string;
+  about_story_content?: string;
+  about_story_image?: string;
+  stat_customers?: string;
+  stat_products?: string;
+  stat_delivery?: string;
+  stat_support?: string;
+  contact_phone?: string;
+  contact_email?: string;
+  contact_address?: string;
 }
 
 export interface HeroSlide {

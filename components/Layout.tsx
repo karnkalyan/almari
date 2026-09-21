@@ -526,7 +526,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             
             <div>
               <h4 className="font-bold text-slate-800 mb-6">Payment Partners</h4>
-              <div className="flex flex-wrap gap-4 opacity-50">
+              <div className="flex flex-wrap gap-4 items-center">
                 {site.paymentPartners && site.paymentPartners.length > 0 ? (
                   site.paymentPartners.map((partner: any, idx: number) => (
                     <img key={idx} src={partner.logo} className="h-6 object-contain" alt={partner.name} title={partner.name} />
@@ -541,8 +541,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
           </div>
 
-          <div className="border-t py-8 text-center text-xs text-gray-500">
-            <p>{site.copyrightText || "Copyright 2026 © Almari Store. All rights reserved."}</p>
+          <div className="border-t py-12 flex flex-col md:flex-row justify-between items-center gap-6">
+             <div className="text-gray-400 text-sm font-medium">
+               {site.copyrightText || `Copyright ${new Date().getFullYear()} © Almari / CineDaraz. All rights reserved.`}
+             </div>
+             <div className="flex items-center gap-8">
+                <Link to="/terms" className="text-gray-400 text-xs font-bold hover:text-[var(--brand-primary)] transition-colors uppercase tracking-widest">Terms</Link>
+                <Link to="/privacy" className="text-gray-400 text-xs font-bold hover:text-[var(--brand-primary)] transition-colors uppercase tracking-widest">Privacy</Link>
+                <Link to="/cookies" className="text-gray-400 text-xs font-bold hover:text-[var(--brand-primary)] transition-colors uppercase tracking-widest">Cookies</Link>
+             </div>
           </div>
         </div>
       </footer>

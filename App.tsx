@@ -49,7 +49,9 @@ import { AdminSubscribers } from './pages/admin/Subscribers';
 import { NavigationManager } from './pages/admin/NavigationManager';
 import { AnnouncementManager } from './pages/admin/AnnouncementManager';
 import { CommunicationSettings } from './pages/admin/CommunicationSettings';
+import { AboutUsManagement } from './pages/admin/AboutUsManagement';
 import { HomepageBuilder } from './pages/admin/HomepageBuilder';
+import { AdminProfile } from './pages/admin/Profile';
 
 
 // Context Definition
@@ -127,7 +129,9 @@ const AppRoutes = () => {
         <Route path="subscribers" element={<AdminSubscribers />} />
         <Route path="settings" element={<AdminSettings />} />
         <Route path="communication" element={<CommunicationSettings />} />
+        <Route path="about-us" element={<AboutUsManagement />} />
         <Route path="homepage-builder" element={<HomepageBuilder />} />
+        <Route path="profile" element={<AdminProfile />} />
 
         <Route path="finance" element={<AdminFinance />} />
         <Route path="purchases" element={<AdminPurchases />} />
@@ -161,8 +165,15 @@ const App: React.FC = () => {
 
   useEffect(() => {
     apiService.getSiteSettings().then(data => {
-      if (data && data.site_customization) setSite(data.site_customization);
-      else if (data && data.site) setSite(data.site); // Fallback
+      // Handle both array and object responses from API
+      const siteCustomization = Array.isArray(data) 
+        ? data.find((s: any) => s.key === 'site_customization')?.value
+        : data.site_customization;
+
+      if (siteCustomization) {
+        const val = typeof siteCustomization === 'string' ? JSON.parse(siteCustomization) : siteCustomization;
+        setSite(val);
+      }
     });
   }, []);
 
@@ -196,11 +207,23 @@ const App: React.FC = () => {
     try {
       const user = JSON.parse(savedUser);
       apiService.getCart(user.id).then(items => {
-        setCart(items.map((item: any) => ({
-          ...item.product,
-          quantity: item.quantity,
-          selectedServices: item.selectedOptions?.services || [],
-        })));
+        setCart(items.map((item: any) => {
+          const product = item.product || {};
+          const category = typeof product.category === 'string'
+            ? product.category
+            : product.category?.name || product.categoryName || '';
+
+          return {
+            ...product,
+            category,
+            categoryId: product.categoryId || product.category?.id || '',
+            price: Number(product.price || 0),
+            quantity: Number(item.quantity || 1),
+            selectedServices: Array.isArray(item.selectedOptions?.services)
+              ? item.selectedOptions.services
+              : [],
+          };
+        }));
       }).catch(() => {});
     } catch {}
   }, []);

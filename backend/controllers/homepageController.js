@@ -31,9 +31,10 @@ exports.createSection = async (req, res) => {
 
 exports.updateSection = async (req, res) => {
   try {
+    const { items, id, createdAt, updatedAt, ...updateData } = req.body;
     const section = await prisma.homepageSection.update({
       where: { id: req.params.id },
-      data: req.body
+      data: updateData
     });
     res.json(section);
   } catch (err) {

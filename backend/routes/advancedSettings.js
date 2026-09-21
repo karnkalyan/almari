@@ -17,6 +17,9 @@ router.post('/notification-recipients', settingsController.updateRecipients);
 router.get('/smtp', settingsController.getSmtpSettings);
 router.post('/smtp', settingsController.updateSmtpSettings);
 
+router.post('/email-templates/delete/:id', settingsController.deleteEmailTemplate);
+router.post('/sms-templates/delete/:id', settingsController.deleteSmsTemplate);
+
 router.get('/sms-gateways', settingsController.getSmsGateways);
 router.post('/sms-gateways', settingsController.updateSmsGateway);
 router.post('/sms-gateways/:id', settingsController.updateSmsGateway);

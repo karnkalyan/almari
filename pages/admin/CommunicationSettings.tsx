@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, MessageSquare, Bell, Save, Plus, Trash2, ShieldCheck, Server, RefreshCw, Smartphone } from 'lucide-react';
+import { Mail, MessageSquare, Bell, Save, Plus, Trash2, ShieldCheck, Server, RefreshCw, Smartphone, Eye } from 'lucide-react';
 import { apiService } from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -18,8 +18,18 @@ export const CommunicationSettings: React.FC = () => {
         'sms-templates': 'sms-templates',
         'notifications': 'notification-events'
       };
-      const result = await apiService.getAdvancedSettings(endpointMap[tab]);
-      setData(result || (['sms', 'recipients', 'email-templates', 'sms-templates', 'notifications'].includes(tab) ? [] : {}));
+      
+      if (tab === 'notifications') {
+        const [settings, emailTemplates, smsTemplates] = await Promise.all([
+          apiService.getAdvancedSettings('notification-events'),
+          apiService.getAdvancedSettings('email-templates'),
+          apiService.getAdvancedSettings('sms-templates')
+        ]);
+        setData({ settings, emailTemplates, smsTemplates });
+      } else {
+        const result = await apiService.getAdvancedSettings(endpointMap[tab]);
+        setData(result || (['sms', 'recipients', 'email-templates', 'sms-templates'].includes(tab) ? [] : {}));
+      }
     } catch (error) {
       toast.error('Failed to load settings');
     }
@@ -108,9 +118,24 @@ export const CommunicationSettings: React.FC = () => {
                       <option value="Twilio">Twilio</option>
                       <option value="Custom">Custom HTTP API</option>
                     </select>
-                    <input className="h-12 px-4 border border-gray-200 rounded-xl bg-white font-bold text-sm outline-none" placeholder="API Key / Token" value={gateway.apiKey || ''} onChange={e => { const n = [...data]; n[idx].apiKey = e.target.value; setData(n); }} />
-                    <input className="h-12 px-4 border border-gray-200 rounded-xl bg-white font-bold text-sm outline-none" placeholder="Gateway URL" value={gateway.gatewayUrl || ''} onChange={e => { const n = [...data]; n[idx].gatewayUrl = e.target.value; setData(n); }} />
-                    <input className="h-12 px-4 border border-gray-200 rounded-xl bg-white font-bold text-sm outline-none" placeholder="Sender ID / Number" value={gateway.senderId || ''} onChange={e => { const n = [...data]; n[idx].senderId = e.target.value; setData(n); }} />
+                    <input 
+                      className="h-12 px-4 border border-gray-200 rounded-xl bg-white font-bold text-sm outline-none" 
+                      placeholder={gateway.providerName === 'Aakash SMS' ? "API Key / Auth Token" : "API Key / Token"} 
+                      value={gateway.apiKey || ''} 
+                      onChange={e => { const n = [...data]; n[idx].apiKey = e.target.value; setData(n); }} 
+                    />
+                    <input 
+                      className="h-12 px-4 border border-gray-200 rounded-xl bg-white font-bold text-sm outline-none" 
+                      placeholder={gateway.providerName === 'Aakash SMS' ? "V3 API Gateway URL" : "Gateway URL"} 
+                      value={gateway.gatewayUrl || ''} 
+                      onChange={e => { const n = [...data]; n[idx].gatewayUrl = e.target.value; setData(n); }} 
+                    />
+                    <input 
+                      className="h-12 px-4 border border-gray-200 rounded-xl bg-white font-bold text-sm outline-none" 
+                      placeholder={gateway.providerName === 'Aakash SMS' ? "Sender ID (CineDaraz)" : "Sender ID / Number"} 
+                      value={gateway.senderId || ''} 
+                      onChange={e => { const n = [...data]; n[idx].senderId = e.target.value; setData(n); }} 
+                    />
                   </div>
                   <button onClick={() => saveSettings(`sms-gateways/${gateway.id || 'new'}`, gateway)} disabled={loading} className="px-6 py-3 bg-white border border-gray-200 text-slate-700 font-bold rounded-xl text-xs uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center gap-2"><Save size={14} /> Update Gateway</button>
                 </div>
@@ -153,6 +178,8 @@ export const CommunicationSettings: React.FC = () => {
           </div>
         );
       case 'notifications':
+        const emailTemps = Array.isArray(data.emailTemplates) ? data.emailTemplates : [];
+        const smsTemps = Array.isArray(data.smsTemplates) ? data.smsTemplates : [];
         const events = [
           { id: 'new_order', label: 'New Order Received', desc: 'Notify when a customer places a new order.' },
           { id: 'order_status', label: 'Order Status Changed', desc: 'Notify customer when order status updates.' },
@@ -162,99 +189,233 @@ export const CommunicationSettings: React.FC = () => {
           { id: 'product_review', label: 'New Product Review', desc: 'Notify admin when a review is submitted.' },
           { id: 'payment_failure', label: 'Payment Failure', desc: 'Notify admin/user of failed payments.' }
         ];
+
         return (
           <div className="space-y-6">
-            <h2 className="text-lg font-bold text-slate-800">Event-Wise Rules</h2>
-            <div className="space-y-4">
-              {events.map((event) => {
-                const setting = (Array.isArray(data) ? data : []).find((d: any) => d.event === event.id) || { event: event.id, adminEmail: false, customerEmail: false, adminSms: false, customerSms: false, enabled: true };
-                return (
-                  <div key={event.id} className="p-6 border border-gray-100 rounded-[2rem] bg-gray-50/50 flex flex-col lg:flex-row justify-between lg:items-center gap-6">
-                    <div className="max-w-md">
-                      <div className="flex items-center gap-3 mb-1">
-                        <div className={`w-2 h-2 rounded-full ${setting.enabled ? 'bg-green-400' : 'bg-gray-300'}`}></div>
-                        <h3 className="font-bold text-slate-800 text-sm">{event.label}</h3>
-                      </div>
-                      <p className="text-xs text-gray-500">{event.desc}</p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-6">
-                      <div className="flex items-center gap-4 border-r border-gray-200 pr-6">
-                         <label className="flex items-center gap-2 cursor-pointer group">
-                           <input type="checkbox" checked={setting.adminEmail} onChange={e => { const n = [...data]; const idx = n.findIndex(x => x.event === event.id); if(idx >= 0) n[idx].adminEmail = e.target.checked; else n.push({...setting, adminEmail: e.target.checked}); setData(n); }} className="w-4 h-4 rounded text-[var(--brand-primary)]" />
-                           <span className="text-[10px] font-black uppercase text-gray-400 group-hover:text-slate-600 transition-colors">Admin Mail</span>
-                         </label>
-                         <label className="flex items-center gap-2 cursor-pointer group">
-                           <input type="checkbox" checked={setting.adminSms} onChange={e => { const n = [...data]; const idx = n.findIndex(x => x.event === event.id); if(idx >= 0) n[idx].adminSms = e.target.checked; else n.push({...setting, adminSms: e.target.checked}); setData(n); }} className="w-4 h-4 rounded text-[var(--brand-primary)]" />
-                           <span className="text-[10px] font-black uppercase text-gray-400 group-hover:text-slate-600 transition-colors">Admin SMS</span>
-                         </label>
-                      </div>
-                      <div className="flex items-center gap-4">
-                         <label className="flex items-center gap-2 cursor-pointer group">
-                           <input type="checkbox" checked={setting.customerEmail} onChange={e => { const n = [...data]; const idx = n.findIndex(x => x.event === event.id); if(idx >= 0) n[idx].customerEmail = e.target.checked; else n.push({...setting, customerEmail: e.target.checked}); setData(n); }} className="w-4 h-4 rounded text-[var(--brand-primary)]" />
-                           <span className="text-[10px] font-black uppercase text-gray-400 group-hover:text-slate-600 transition-colors">User Mail</span>
-                         </label>
-                         <label className="flex items-center gap-2 cursor-pointer group">
-                           <input type="checkbox" checked={setting.customerSms} onChange={e => { const n = [...data]; const idx = n.findIndex(x => x.event === event.id); if(idx >= 0) n[idx].customerSms = e.target.checked; else n.push({...setting, customerSms: e.target.checked}); setData(n); }} className="w-4 h-4 rounded text-[var(--brand-primary)]" />
-                           <span className="text-[10px] font-black uppercase text-gray-400 group-hover:text-slate-600 transition-colors">User SMS</span>
-                         </label>
-                      </div>
-                      <button onClick={() => saveSettings('notification-events', setting)} className="p-2 bg-white border border-gray-200 rounded-xl text-slate-400 hover:text-[var(--brand-primary)] hover:border-[var(--brand-primary)] transition-all"><Save size={16} /></button>
-                    </div>
-                  </div>
-                );
-              })}
+            <h2 className="text-lg font-bold text-slate-800">Event-Wise Rules & Template Mapping</h2>
+            <div className="overflow-hidden rounded-[2.5rem] border border-gray-100 bg-white">
+               <table className="w-full text-left">
+                  <thead className="bg-gray-50/50">
+                     <tr>
+                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Trigger Event</th>
+                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Channels</th>
+                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Templates</th>
+                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Action</th>
+                     </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                     {events.map((event) => {
+                       const setting = (Array.isArray(data.settings) ? data.settings : []).find((d: any) => d.event === event.id) || { event: event.id, adminEmail: false, customerEmail: false, adminSms: false, customerSms: false, enabled: true };
+                       return (
+                         <tr key={event.id} className="group hover:bg-gray-50/30 transition-all">
+                           <td className="px-8 py-6">
+                              <div>
+                                 <h4 className="text-sm font-bold text-slate-800">{event.label}</h4>
+                                 <p className="text-[10px] text-gray-400 font-medium">{event.desc}</p>
+                              </div>
+                           </td>
+                           <td className="px-8 py-6">
+                              <div className="flex flex-col gap-2">
+                                 <div className="flex gap-4">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                       <input type="checkbox" checked={setting.adminEmail} onChange={e => { const n = { ...data }; const sIdx = n.settings.findIndex((x: any) => x.event === event.id); if(sIdx >= 0) n.settings[sIdx].adminEmail = e.target.checked; else n.settings.push({ ...setting, adminEmail: e.target.checked }); setData(n); }} className="w-3.5 h-3.5 rounded text-[var(--brand-primary)]" />
+                                       <span className="text-[10px] font-bold text-gray-500">Admin Email</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                       <input type="checkbox" checked={setting.customerEmail} onChange={e => { const n = { ...data }; const sIdx = n.settings.findIndex((x: any) => x.event === event.id); if(sIdx >= 0) n.settings[sIdx].customerEmail = e.target.checked; else n.settings.push({ ...setting, customerEmail: e.target.checked }); setData(n); }} className="w-3.5 h-3.5 rounded text-[var(--brand-primary)]" />
+                                       <span className="text-[10px] font-bold text-gray-500">User Email</span>
+                                    </label>
+                                 </div>
+                                 <div className="flex gap-4">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                       <input type="checkbox" checked={setting.adminSms} onChange={e => { const n = { ...data }; const sIdx = n.settings.findIndex((x: any) => x.event === event.id); if(sIdx >= 0) n.settings[sIdx].adminSms = e.target.checked; else n.settings.push({ ...setting, adminSms: e.target.checked }); setData(n); }} className="w-3.5 h-3.5 rounded text-slate-700" />
+                                       <span className="text-[10px] font-bold text-gray-500">Admin SMS</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                       <input type="checkbox" checked={setting.customerSms} onChange={e => { const n = { ...data }; const sIdx = n.settings.findIndex((x: any) => x.event === event.id); if(sIdx >= 0) n.settings[sIdx].customerSms = e.target.checked; else n.settings.push({ ...setting, customerSms: e.target.checked }); setData(n); }} className="w-3.5 h-3.5 rounded text-slate-700" />
+                                       <span className="text-[10px] font-bold text-gray-500">User SMS</span>
+                                    </label>
+                                 </div>
+                              </div>
+                           </td>
+                           <td className="px-8 py-6">
+                              <div className="flex flex-col gap-2">
+                                 <select 
+                                   className="text-[10px] font-bold bg-gray-50 border-none rounded-lg px-3 py-1.5 focus:ring-1 focus:ring-[var(--brand-primary)]"
+                                   value={setting.emailTemplateName || ''}
+                                   onChange={e => { const n = { ...data }; const sIdx = n.settings.findIndex((x: any) => x.event === event.id); if(sIdx >= 0) n.settings[sIdx].emailTemplateName = e.target.value; else n.settings.push({ ...setting, emailTemplateName: e.target.value }); setData(n); }}
+                                 >
+                                    <option value="">Select Email Template</option>
+                                    {emailTemps.map((t: any) => <option key={t.id} value={t.name}>{t.name}</option>)}
+                                 </select>
+                                 <select 
+                                   className="text-[10px] font-bold bg-gray-50 border-none rounded-lg px-3 py-1.5 focus:ring-1 focus:ring-slate-900"
+                                   value={setting.smsTemplateName || ''}
+                                   onChange={e => { const n = { ...data }; const sIdx = n.settings.findIndex((x: any) => x.event === event.id); if(sIdx >= 0) n.settings[sIdx].smsTemplateName = e.target.value; else n.settings.push({ ...setting, smsTemplateName: e.target.value }); setData(n); }}
+                                 >
+                                    <option value="">Select SMS Template</option>
+                                    {smsTemps.map((t: any) => <option key={t.id} value={t.name}>{t.name}</option>)}
+                                 </select>
+                              </div>
+                           </td>
+                           <td className="px-8 py-6 text-right">
+                              <button onClick={() => saveSettings('notification-events', setting)} className="p-2.5 bg-[var(--brand-primary)] text-white rounded-xl shadow-lg shadow-[var(--brand-primary)]/20 hover:scale-105 transition-all"><Save size={14} /></button>
+                           </td>
+                         </tr>
+                       );
+                     })}
+                  </tbody>
+               </table>
             </div>
           </div>
         );
       case 'email-templates':
+        const selectedTemplate = Array.isArray(data) ? data.find((t: any) => t.id === (data as any).selectedId) || data[0] : null;
+        
         return (
           <div className="space-y-6">
-            <h2 className="text-lg font-bold text-slate-800">Email Template Management</h2>
-            <div className="space-y-6">
-              {(Array.isArray(data) ? data : []).map((template: any, idx: number) => (
-                <div key={idx} className="p-8 border border-gray-100 rounded-[2rem] bg-gray-50/50 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Template Name</label>
-                      <input className="w-full h-12 px-4 border border-gray-200 rounded-xl bg-white font-bold text-sm outline-none" value={template.name || ''} onChange={e => { const n = [...data]; n[idx].name = e.target.value; setData(n); }} />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Subject Line</label>
-                      <input className="w-full h-12 px-4 border border-gray-200 rounded-xl bg-white font-bold text-sm outline-none" value={template.subject || ''} onChange={e => { const n = [...data]; n[idx].subject = e.target.value; setData(n); }} />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center px-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Message Body (HTML Supported)</label>
-                      <div className="text-[9px] font-bold text-gray-400">PLACEHOLDERS: {'{customer_name}'}, {'{order_id}'}, {'{total}'}, {'{store_name}'}</div>
-                    </div>
-                    <textarea className="w-full p-6 border border-gray-200 rounded-[1.5rem] bg-white font-medium text-sm outline-none min-h-[300px] leading-relaxed" value={template.body || ''} onChange={e => { const n = [...data]; n[idx].body = e.target.value; setData(n); }} />
-                  </div>
-                  <div className="flex gap-4">
-                    <button onClick={() => saveSettings('email-templates', template)} className="px-6 py-3 bg-[var(--brand-primary)] text-white font-bold rounded-xl text-xs uppercase tracking-widest flex items-center gap-2 shadow-lg"><Save size={16} /> Save Template</button>
-                    <button onClick={() => toast.success('Preview opened')} className="px-6 py-3 bg-white border border-gray-200 text-slate-600 font-bold rounded-xl text-xs uppercase tracking-widest">Preview Mode</button>
-                  </div>
-                </div>
-              ))}
-              <button onClick={() => setData([...data, { name: '', subject: '', body: '' }])} className="w-full py-6 border-2 border-dashed border-gray-200 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] text-gray-400 hover:text-[var(--brand-primary)] transition-all flex justify-center items-center gap-2"><Plus size={16} /> New Email Template</button>
+            <div className="flex items-center justify-between">
+               <h2 className="text-lg font-bold text-slate-800">Email Template Management</h2>
+               <button onClick={() => { const n = [...data]; n.push({ name: '', subject: '', body: '' }); setData(n); }} className="px-4 py-2 bg-[var(--brand-primary)] text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:opacity-90 transition-all shadow-md"><Plus size={14} /> New Template</button>
             </div>
+            <div className="overflow-hidden rounded-[2rem] border border-gray-100 shadow-sm">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-gray-50/50">
+                  <tr>
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Template Name</th>
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Subject</th>
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {(Array.isArray(data) ? data : []).map((template: any, idx: number) => (
+                    <tr 
+                      key={idx} 
+                      className={`group hover:bg-gray-50/30 transition-colors cursor-pointer ${selectedTemplate?.id === template.id ? 'bg-blue-50/30' : ''}`}
+                      onClick={() => setData({ ...data, selectedId: template.id })}
+                    >
+                      <td className="px-8 py-6">
+                         <div className="flex flex-col gap-1">
+                           <input 
+                             className="bg-transparent border-none p-0 font-bold text-slate-800 text-sm focus:ring-0 w-full" 
+                             value={template.name || ''} 
+                             onChange={e => { const n = [...data]; n[idx].name = e.target.value; setData(n); }} 
+                             placeholder="Template Name..."
+                           />
+                         </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <input 
+                          className="bg-transparent border-none p-0 text-slate-600 text-sm focus:ring-0 w-full font-medium" 
+                          value={template.subject || ''} 
+                          onChange={e => { const n = [...data]; n[idx].subject = e.target.value; setData(n); }} 
+                          placeholder="Subject line..."
+                        />
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                           <button onClick={(e) => { e.stopPropagation(); saveSettings('email-templates', template); }} className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-all"><Save size={14} /></button>
+                           <button onClick={(e) => { e.stopPropagation(); const n = [...data]; n.splice(idx, 1); setData(n); saveSettings(`email-templates/delete/${template.id}`, {}); }} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all"><Trash2 size={14} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {selectedTemplate && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
+                 {/* Editor Area */}
+                 <div className="p-10 border border-gray-100 rounded-[3rem] bg-gray-50/30">
+                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6">Template Body Editor (HTML)</h3>
+                    <div className="space-y-4">
+                       <div className="flex justify-between items-center px-4 py-2 bg-slate-900 rounded-2xl text-white">
+                          <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Dynamic Variables</span>
+                          <div className="flex gap-4 text-[9px] font-bold">
+                             <span className="bg-white/10 px-2 py-1 rounded">{'{{customer_name}}'}</span>
+                             <span className="bg-white/10 px-2 py-1 rounded">{'{{order_id}}'}</span>
+                             <span className="bg-white/10 px-2 py-1 rounded">{'{{total}}'}</span>
+                          </div>
+                       </div>
+                       <textarea 
+                         className="w-full min-h-[500px] p-8 bg-white border border-gray-100 rounded-[2.5rem] shadow-inner font-mono text-xs outline-none focus:border-[var(--brand-primary)] transition-all leading-relaxed"
+                         placeholder="Paste your HTML template here..."
+                         value={selectedTemplate.body || ''}
+                         onChange={e => { 
+                           const n = [...data]; 
+                           const idx = n.findIndex((t: any) => t.id === selectedTemplate.id);
+                           if(idx >= 0) n[idx].body = e.target.value; 
+                           setData(n); 
+                         }}
+                       />
+                       <button onClick={() => saveSettings('email-templates', selectedTemplate)} className="w-full py-4 bg-[var(--brand-primary)] text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg hover:opacity-90 transition-all">Save Changes to {selectedTemplate.name}</button>
+                    </div>
+                 </div>
+
+                 {/* Preview Area */}
+                 <div className="p-10 border border-gray-100 rounded-[3rem] bg-white shadow-xl flex flex-col h-full">
+                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2"><Eye size={16} /> Live Preview</h3>
+                    <div className="flex-1 bg-gray-50 rounded-[2.5rem] overflow-hidden border border-gray-100 relative min-h-[600px]">
+                       <iframe 
+                         srcDoc={selectedTemplate.body || '<p class="p-10 text-gray-400">Empty template</p>'} 
+                         className="w-full h-full border-none"
+                         title="Email Preview"
+                       />
+                    </div>
+                 </div>
+              </div>
+            )}
           </div>
         );
       case 'sms-templates':
         return (
           <div className="space-y-6">
-            <h2 className="text-lg font-bold text-slate-800">SMS Template Management</h2>
-            <div className="space-y-6">
-              {(Array.isArray(data) ? data : []).map((template: any, idx: number) => (
-                <div key={idx} className="p-8 border border-gray-100 rounded-[2rem] bg-gray-50/50 space-y-4">
-                  <input className="w-full h-12 px-4 border border-gray-200 rounded-xl bg-white font-bold text-sm outline-none" placeholder="Event Name" value={template.name || ''} onChange={e => { const n = [...data]; n[idx].name = e.target.value; setData(n); }} />
-                  <textarea className="w-full p-4 border border-gray-200 rounded-xl bg-white font-medium text-sm outline-none min-h-[100px]" placeholder="SMS content..." value={template.body || ''} onChange={e => { const n = [...data]; n[idx].body = e.target.value; setData(n); }} />
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] text-gray-400 font-bold">CHARS: {template.body?.length || 0} / 160 (1 SMS)</span>
-                    <button onClick={() => saveSettings('sms-templates', template)} className="px-4 py-2 bg-[var(--brand-primary)] text-white font-bold rounded-xl text-[10px] uppercase tracking-widest shadow-md">Save</button>
-                  </div>
-                </div>
-              ))}
+            <div className="flex items-center justify-between">
+               <h2 className="text-lg font-bold text-slate-800">SMS Template Management</h2>
+               <button onClick={() => { const n = [...data]; n.push({ name: '', body: '' }); setData(n); }} className="px-4 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:opacity-90 transition-all shadow-md"><Plus size={14} /> New Rule</button>
+            </div>
+            <div className="overflow-hidden rounded-[2rem] border border-gray-100 bg-white">
+               <table className="w-full text-left">
+                  <thead className="bg-gray-50/50">
+                     <tr>
+                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Hook Name</th>
+                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Message Content</th>
+                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
+                     </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                     {(Array.isArray(data) ? data : []).map((template: any, idx: number) => (
+                       <tr key={idx} className="group hover:bg-gray-50/30 transition-all">
+                         <td className="px-8 py-6 w-1/4">
+                            <input 
+                              className="w-full bg-transparent border-none p-0 font-bold text-slate-800 text-sm focus:ring-0" 
+                              value={template.name || ''} 
+                              onChange={e => { const n = [...data]; n[idx].name = e.target.value; setData(n); }}
+                              placeholder="e.g. order_confirmed"
+                            />
+                         </td>
+                         <td className="px-8 py-6">
+                            <div className="flex flex-col gap-2">
+                               <textarea 
+                                 className="w-full bg-transparent border-none p-0 text-slate-600 text-sm focus:ring-0 resize-none min-h-[40px]"
+                                 value={template.body || ''}
+                                 onChange={e => { const n = [...data]; n[idx].body = e.target.value; setData(n); }}
+                                 placeholder="SMS content..."
+                               />
+                               <span className={`text-[9px] font-black ${template.body?.length > 160 ? 'text-orange-400' : 'text-slate-300'}`}>{template.body?.length || 0}/160 CHARS</span>
+                            </div>
+                         </td>
+                         <td className="px-8 py-6 text-right">
+                            <div className="flex items-center justify-end gap-3">
+                               <button onClick={() => saveSettings('sms-templates', template)} className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-all"><Save size={14} /></button>
+                               <button onClick={() => { const n = [...data]; n.splice(idx, 1); setData(n); saveSettings(`sms-templates/delete/${template.id}`, {}); }} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all"><Trash2 size={14} /></button>
+                            </div>
+                         </td>
+                       </tr>
+                     ))}
+                  </tbody>
+               </table>
             </div>
           </div>
         );

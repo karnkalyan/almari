@@ -1,14 +1,6 @@
-
-import React, { useEffect, useRef, useState } from 'react';
-import Quill from 'quill';
-import 'quill/dist/quill.snow.css';
+import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { 
-  ArrowDown, 
-  ArrowUp, 
-  Plus, 
-  Save, 
-  Trash2, 
   Palette, 
   Monitor, 
   LayoutTemplate, 
@@ -17,7 +9,10 @@ import {
   Link2, 
   TableProperties, 
   Settings2,
-  RefreshCw
+  Save,
+  RefreshCw,
+  Droplets,
+  Type
 } from 'lucide-react';
 import { apiService } from '../../services/api';
 import { SiteCustomization } from '../../types';
@@ -85,7 +80,6 @@ export const AdminSettings: React.FC = () => {
   const fetchSettings = async () => {
     try {
       const data = await apiService.getSiteSettings();
-      // Handle both array and object responses from API
       const siteCustomization = Array.isArray(data) 
         ? data.find((s: any) => s.key === 'site_customization')?.value
         : data.site_customization;
@@ -124,6 +118,30 @@ export const AdminSettings: React.FC = () => {
     { id: 'logic', label: 'Store Logic', icon: Settings2 },
   ];
 
+  const ColorInput = ({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) => (
+    <div className="space-y-2">
+      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{label}</label>
+      <div className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-100 rounded-2xl hover:border-slate-300 transition-all group">
+        <div className="relative w-10 h-10 rounded-xl border border-black/5 flex-shrink-0 overflow-hidden shadow-sm" style={{ backgroundColor: value || '#000' }}>
+          <input 
+            type="color" 
+            value={value || '#000000'} 
+            onChange={(e) => onChange(e.target.value)}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+          <Droplets size={14} className="absolute inset-0 m-auto text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none drop-shadow-md" />
+        </div>
+        <input 
+          type="text" 
+          value={value || ''} 
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1 bg-transparent border-none outline-none font-bold text-slate-700 text-sm uppercase tracking-wider"
+          placeholder="#000000"
+        />
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-8 pb-24 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
@@ -141,7 +159,7 @@ export const AdminSettings: React.FC = () => {
           <button 
             onClick={save}
             disabled={saving}
-            className="px-8 py-3 bg-[var(--brand-primary)] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-900/20 flex items-center gap-2 hover:opacity-90 transition-all disabled:opacity-50"
+            className="px-8 py-3 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-900/20 flex items-center gap-2 hover:opacity-90 transition-all disabled:opacity-50"
           >
             {saving ? <RefreshCw className="animate-spin" size={18} /> : <Save size={18} />} 
             {saving ? 'Synchronizing...' : 'Save Changes'}
@@ -169,31 +187,37 @@ export const AdminSettings: React.FC = () => {
       <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden min-h-[500px]">
         <div className="p-10">
           {activeTab === 'brand' && (
-            <div className="space-y-10 animate-in slide-in-from-bottom-4 duration-500">
+            <div className="space-y-12 animate-in slide-in-from-bottom-4 duration-500">
                <div>
-                  <h3 className="text-xl font-black text-slate-800 mb-6">Visual Identity</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Store Display Name</label>
-                        <input 
-                          type="text" 
-                          value={settings.storeName}
-                          onChange={(e) => update('storeName', e.target.value)}
-                          className="w-full h-14 px-5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/10 transition-all font-bold text-slate-700"
-                        />
-                     </div>
-                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Typography Secondary Text</label>
-                        <input 
-                          type="text" 
-                          value={settings.logoText}
-                          onChange={(e) => update('logoText', e.target.value)}
-                          className="w-full h-14 px-5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/10 transition-all font-bold text-slate-700"
-                        />
-                     </div>
+                  <h3 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2"><Palette size={20} className="text-blue-500" /> Visual Identity</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <ColorInput label="Primary Color" value={settings.primaryColor || '#002f4a'} onChange={(v) => update('primaryColor', v)} />
+                    <ColorInput label="Accent Color" value={settings.accentColor || '#E5A823'} onChange={(v) => update('accentColor', v)} />
+                    <ColorInput label="Secondary Color" value={settings.secondaryColor || '#64748b'} onChange={(v) => update('secondaryColor', v)} />
+                    <ColorInput label="System Borders" value={settings.tertiaryColor || '#94a3b8'} onChange={(v) => update('tertiaryColor', v)} />
                   </div>
                </div>
-               {/* Add more brand settings as needed, reflecting what's in VisualIdentity.tsx too */}
+
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-gray-50">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 flex items-center gap-2"><Type size={12} /> Store Display Name</label>
+                    <input 
+                      type="text" 
+                      value={settings.storeName}
+                      onChange={(e) => update('storeName', e.target.value)}
+                      className="w-full h-14 px-5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-slate-200 transition-all font-bold text-slate-700"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Logo Typography Text</label>
+                    <input 
+                      type="text" 
+                      value={settings.logoText}
+                      onChange={(e) => update('logoText', e.target.value)}
+                      className="w-full h-14 px-5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-slate-200 transition-all font-bold text-slate-700"
+                    />
+                  </div>
+               </div>
             </div>
           )}
 
@@ -209,23 +233,26 @@ export const AdminSettings: React.FC = () => {
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input type="checkbox" checked={settings.topBarEnabled} onChange={e => update('topBarEnabled', e.target.checked)} className="sr-only peer" />
-                          <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-7 after:transition-all peer-checked:bg-[var(--brand-primary)]"></div>
+                          <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-7 after:transition-all peer-checked:bg-slate-900"></div>
                         </label>
                      </div>
                      <div className="space-y-3">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Banner Headline</label>
-                        <input type="text" value={settings.topBarText} onChange={e => update('topBarText', e.target.value)} className="w-full h-12 px-4 bg-white border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/10 transition-all font-medium text-slate-700" />
+                        <input type="text" value={settings.topBarText} onChange={e => update('topBarText', e.target.value)} className="w-full h-12 px-4 bg-white border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-slate-200 transition-all font-medium text-slate-700" />
                      </div>
                   </div>
                </div>
             </div>
           )}
 
-          {/* Logic to implement other tabs based on the structure of SiteCustomization */}
-          <div className="py-20 text-center text-gray-300">
-             <Settings2 size={48} className="mx-auto mb-4 opacity-20" />
-             <p className="text-sm font-bold uppercase tracking-widest">Select a tab to begin tailoring {settings.storeName}</p>
-          </div>
+          {/* Fallback for other tabs */}
+          {!['brand', 'header'].includes(activeTab) && (
+            <div className="py-20 text-center text-gray-300">
+               <Settings2 size={48} className="mx-auto mb-4 opacity-20" />
+               <p className="text-sm font-bold uppercase tracking-widest">Configuring {tabs.find(t => t.id === activeTab)?.label}</p>
+               <p className="text-xs mt-2">Section content coming soon...</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

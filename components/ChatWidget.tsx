@@ -52,7 +52,7 @@ export const ChatWidget: React.FC = () => {
       // Load existing conversation if any
       const loadHistory = async () => {
         try {
-          const convs = await apiService.getConversations();
+          const convs = await apiService.getConversations(user.id);
           if (convs.length > 0) {
             const active = convs[0];
             setConversationId(active.id);
@@ -91,7 +91,11 @@ export const ChatWidget: React.FC = () => {
       let activeConvId = conversationId;
       if (!activeConvId) {
         // Create conversation
-        const conv = await apiService.createConversation('General Support', guestInfo.email || (user?.email || 'guest@guest.com'));
+        const conv = await apiService.createConversation(
+          user?.id,
+          'General Support',
+          user ? undefined : guestInfo
+        );
         activeConvId = conv.id;
         setConversationId(activeConvId);
         socketRef.current?.emit('join_conversation', activeConvId);
