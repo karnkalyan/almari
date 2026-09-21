@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # MySQL Database Service
   db:
@@ -12,7 +10,8 @@ services:
       MYSQL_PASSWORD: quantumSql@123
       MYSQL_ROOT_PASSWORD: quantumSql@123
     ports:
-      - "3306:3306"
+      - "3307:3306"
+
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -53,7 +52,7 @@ services:
     container_name: almari-frontend
     restart: always
     ports:
-      - "80:80"
+      - "8080:80"
     depends_on:
       - backend
     networks:
