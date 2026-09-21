@@ -10,8 +10,11 @@ echo "✅ MySQL database is reachable!"
 echo "🔄 Running database migrations..."
 npx prisma migrate deploy || npx prisma db push
 
-echo "🌱 Seeding initial database data..."
-node seed.js || true
+SEED_DATABASE=${SEED_DATABASE:-true}
+if [ "$SEED_DATABASE" = "true" ]; then
+  echo "🌱 Seeding initial database data..."
+  node seed.js || true
+fi
 
 echo "🚀 Starting Almari Backend server..."
 exec npm run start

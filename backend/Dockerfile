@@ -2,8 +2,8 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install openssl for Prisma on Alpine
-RUN apk add --no-cache openssl netcat-openbsd
+# Install openssl for Prisma, netcat for DB polling, dos2unix to guarantee LF line endings
+RUN apk add --no-cache openssl netcat-openbsd dos2unix
 
 COPY package*.json ./
 
@@ -16,8 +16,8 @@ RUN npx prisma generate
 
 COPY . .
 
-# Copy entrypoint script and make it executable
-RUN chmod +x docker-entrypoint.sh
+# Ensure UNIX line endings and executable permissions for entrypoint script
+RUN dos2unix docker-entrypoint.sh && chmod +x docker-entrypoint.sh
 
 EXPOSE 5000
 
