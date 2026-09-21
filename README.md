@@ -37,7 +37,26 @@ A modern, full-stack premium eCommerce platform designed for fashion and luxury 
 
 ---
 
-## 🚀 Getting Started
+## 🐳 Run with Docker Compose (Recommended)
+
+You can launch the complete Almari stack (MySQL Database with seed data, Express Backend, and React Frontend) with a single command:
+
+```bash
+docker compose up --build
+```
+
+- **Frontend Application**: `http://localhost` (Port 80)
+- **Backend API**: `http://localhost:5000` (Port 5000)
+- **Database (MySQL)**: `localhost:3306`
+  - **Database**: `almari_db`
+  - **Username**: `admin`
+  - **Password**: `quantumSql@123`
+
+*Note: Migrations and initial seed data run automatically during container startup!*
+
+---
+
+## 🚀 Getting Started (Manual Setup)
 
 ### Prerequisites
 - [Node.js](https://nodejs.org/) (v18 or higher recommended)

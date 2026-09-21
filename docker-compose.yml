@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # MySQL Database Service
+  db:
+    image: mysql:8.0
+    container_name: almari-mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: almari_db
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: quantumSql@123
+      MYSQL_ROOT_PASSWORD: quantumSql@123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - almari-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "admin", "-pquantumSql@123"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Express & Prisma Backend API Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: almari-backend
+    restart: always
+    environment:
+      PORT: 5000
+      NODE_ENV: production
+      DATABASE_URL: "mysql://admin:quantumSql%40123@db:3306/almari_db"
+      JWT_SECRET: "quantum_almari_secret_jwt_key_2026"
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - almari-network
+
+  # React / Vite Frontend Service
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+    container_name: almari-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - almari-network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  almari-network:
+    driver: bridge
