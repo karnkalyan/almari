@@ -2,15 +2,51 @@ import React, { useEffect, useState, useContext, useRef } from 'react';
 import { ShopContext } from '../../App';
 import { apiService } from '../../services/api';
 import toast from 'react-hot-toast';
-import { Palette, Save, RefreshCw, Smartphone, Monitor, Upload, Trash2, Link as LinkIcon, RotateCcw, ShieldAlert, Sparkles, Droplets } from 'lucide-react';
+import { Palette, Save, RefreshCw, Smartphone, Monitor, Upload, Trash2, Link as LinkIcon, RotateCcw, ShieldAlert, Sparkles, Droplets, QrCode, Globe } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
+
+// Stable top-level ColorField component to avoid remounting and color picker dismiss issues
+const ColorField: React.FC<{ label: string; value: string; onChange: (val: string) => void }> = ({ label, value, onChange }) => {
+  return (
+    <div className="flex items-center gap-5 p-5 bg-gray-50/80 rounded-[2rem] border border-gray-100 hover:border-slate-300 hover:bg-white hover:shadow-lg transition-all duration-300 group">
+      <label
+        className="relative w-14 h-14 rounded-2xl shadow-inner border border-black/10 flex-shrink-0 cursor-pointer overflow-hidden group-hover:scale-105 transition-transform duration-200 block"
+        style={{ backgroundColor: value }}
+      >
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        />
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 pointer-events-none">
+          <Droplets size={18} className="text-white drop-shadow" />
+        </div>
+      </label>
+      <div className="flex-1 min-w-0">
+        <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] mb-1 truncate">{label}</label>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-black text-gray-400 bg-gray-200/60 px-2 py-0.5 rounded-md uppercase tracking-widest">HEX</span>
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="bg-transparent font-black text-slate-800 outline-none w-full text-sm uppercase tracking-wider border-b border-transparent focus:border-slate-300 transition-colors"
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const BrandIdentity: React.FC = () => {
   const { user } = useAuth();
   const { site, setSite } = useContext(ShopContext) as any;
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const faviconFileInputRef = useRef<HTMLInputElement>(null);
+  const qrFileInputRef = useRef<HTMLInputElement>(null);
 
   // Strictly for super admin
   if (user?.role !== 'super_admin') {
@@ -40,7 +76,16 @@ export const BrandIdentity: React.FC = () => {
   const [branding, setBranding] = useState({
     storeName: site.storeName || '',
     logoText: site.logoText || '',
-    logoImage: site.logoImage || ''
+    logoImage: site.logoImage || '',
+    favicon: site.favicon || ''
+  });
+
+  const [merchantQr, setMerchantQr] = useState({
+    merchantQrCode: site.merchantQrCode || '',
+    merchantQrName: site.merchantQrName || 'Fonepay / Bank QR',
+    merchantQrAccountName: site.merchantQrAccountName || 'eAlmari',
+    merchantQrAccountNumber: site.merchantQrAccountNumber || '',
+    merchantQrInstructions: site.merchantQrInstructions || 'Scan this QR code with any mobile banking app, eSewa, or Khalti to complete your payment.'
   });
 
   useEffect(() => {
@@ -55,17 +100,25 @@ export const BrandIdentity: React.FC = () => {
     setBranding({
       storeName: site.storeName || '',
       logoText: site.logoText || '',
-      logoImage: site.logoImage || ''
+      logoImage: site.logoImage || '',
+      favicon: site.favicon || ''
+    });
+    setMerchantQr({
+      merchantQrCode: site.merchantQrCode || '',
+      merchantQrName: site.merchantQrName || 'Fonepay / Bank QR',
+      merchantQrAccountName: site.merchantQrAccountName || 'eAlmari',
+      merchantQrAccountNumber: site.merchantQrAccountNumber || '',
+      merchantQrInstructions: site.merchantQrInstructions || 'Scan this QR code with any mobile banking app, eSewa, or Khalti to complete your payment.'
     });
   }, [site]);
 
   const handleSave = async () => {
     setLoading(true);
     try {
-      const updatedSite = { ...site, ...colors, ...branding };
+      const updatedSite = { ...site, ...colors, ...branding, ...merchantQr };
       await apiService.updateSiteSetting('site_customization', updatedSite);
       setSite(updatedSite);
-      toast.success('Brand Identity synchronized across storefront');
+      toast.success('Brand Identity & Payment QR synchronized across storefront');
     } catch (error) {
       toast.error('Failed to update brand assets');
     } finally {
@@ -97,37 +150,26 @@ export const BrandIdentity: React.FC = () => {
     }
   };
 
-  const ColorField = ({ label, value, onChange }: any) => {
-    return (
-      <div className="flex items-center gap-6 p-6 bg-gray-50/50 rounded-[2.5rem] border border-gray-100 hover:border-slate-300 hover:bg-white hover:shadow-xl transition-all duration-300 group">
-        <div
-          className="relative w-16 h-16 rounded-2xl shadow-inner border border-black/5 flex-shrink-0 cursor-pointer overflow-hidden group-hover:scale-105 transition-transform duration-300"
-          style={{ backgroundColor: value }}
-        >
-          <input
-            type="color"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          />
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 pointer-events-none">
-            <Droplets size={20} className="text-white drop-shadow-md" />
-          </div>
-        </div>
-        <div className="flex-1">
-          <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] mb-1.5">{label}</label>
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] font-black text-gray-400 bg-gray-200/50 px-2 py-0.5 rounded-md uppercase tracking-widest">HEX</span>
-            <input
-              type="text"
-              value={value}
-              onChange={(e) => onChange(e.target.value)}
-              className="bg-transparent font-black text-slate-800 outline-none w-full text-base uppercase tracking-wider border-b border-transparent focus:border-slate-300 transition-colors"
-            />
-          </div>
-        </div>
-      </div>
-    );
+  const handleFaviconUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBranding(prev => ({ ...prev, favicon: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setMerchantQr(prev => ({ ...prev, merchantQrCode: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -143,8 +185,8 @@ export const BrandIdentity: React.FC = () => {
               Super Admin Only
             </span>
           </div>
-          <h1 className="text-4xl font-black text-slate-800 tracking-tight leading-none">Visual Identity Studio</h1>
-          <p className="text-slate-500 font-medium mt-3 max-w-2xl text-sm">Design the heartbeat of your store. Changes applied here instantly update colors, typography, and logos across the entire customer-facing storefront.</p>
+          <h1 className="text-4xl font-black text-slate-800 tracking-tight leading-none">Visual Identity & Payment Studio</h1>
+          <p className="text-slate-500 font-medium mt-3 max-w-2xl text-sm">Design the heartbeat of your store. Changes applied here instantly update colors, typography, favicons, and merchant payment QR codes across the storefront.</p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
           <button
@@ -167,39 +209,74 @@ export const BrandIdentity: React.FC = () => {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 space-y-8">
 
-          {/* Logo & Branding Card */}
+          {/* Logo, Favicon & Branding Card */}
           <section className="bg-white rounded-[3rem] p-8 md:p-10 shadow-sm border border-gray-100 relative">
             <div className="flex items-center gap-4 mb-8 pb-8 border-b border-gray-50">
               <div className="p-3.5 bg-indigo-50 text-indigo-600 rounded-2xl">
                 <Monitor size={24} />
               </div>
               <div>
-                <h2 className="text-2xl font-black text-slate-800 tracking-tight">Typography & Brand Mark</h2>
-                <p className="text-sm text-slate-500 font-medium mt-1">Configure your storefront's name and upload primary visual assets.</p>
+                <h2 className="text-2xl font-black text-slate-800 tracking-tight">Typography, Logo & Favicon</h2>
+                <p className="text-sm text-slate-500 font-medium mt-1">Configure your storefront's brand name, logo, and browser favicon.</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-              <div className="space-y-8">
-                <div className="space-y-3">
+              <div className="space-y-6">
+                <div className="space-y-2.5">
                   <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em] ml-2">Store Display Name</label>
                   <input
                     type="text"
                     value={branding.storeName}
                     onChange={(e) => setBranding(p => ({ ...p, storeName: e.target.value }))}
                     className="w-full h-14 px-6 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold text-slate-800"
-                    placeholder="Almari Premium"
+                    placeholder="eAlmari"
                   />
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em] ml-2">Header Accent Text (If no logo)</label>
                   <input
                     type="text"
                     value={branding.logoText}
                     onChange={(e) => setBranding(p => ({ ...p, logoText: e.target.value }))}
                     className="w-full h-14 px-6 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-black text-slate-800 tracking-widest uppercase"
-                    placeholder="ALMARI"
+                    placeholder="EALMARI"
                   />
+                </div>
+
+                {/* Favicon Asset */}
+                <div className="space-y-2.5 pt-2">
+                  <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em] ml-2 flex items-center gap-2">
+                    <Globe size={14} /> Browser Favicon Icon
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {branding.favicon || branding.logoImage ? (
+                        <img src={branding.favicon || branding.logoImage} alt="Favicon" className="w-10 h-10 object-contain" />
+                      ) : (
+                        <Globe size={20} className="text-gray-400" />
+                      )}
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <button
+                        type="button"
+                        onClick={() => faviconFileInputRef.current?.click()}
+                        className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-xs font-bold text-slate-700 transition"
+                      >
+                        Upload Favicon
+                      </button>
+                      <input type="file" ref={faviconFileInputRef} onChange={handleFaviconUpload} className="hidden" accept="image/*" />
+                      {branding.favicon && (
+                        <button
+                          type="button"
+                          onClick={() => setBranding(p => ({ ...p, favicon: '' }))}
+                          className="ml-2 text-xs text-rose-500 font-bold hover:underline"
+                        >
+                          Reset
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -254,7 +331,110 @@ export const BrandIdentity: React.FC = () => {
             </div>
           </section>
 
-          {/* Color Palette Card */}
+          {/* Merchant Payment QR Code Upload Section */}
+          <section className="bg-white rounded-[3rem] p-8 md:p-10 shadow-sm border border-gray-100 relative">
+            <div className="flex items-center gap-4 mb-8 pb-8 border-b border-gray-50">
+              <div className="p-3.5 bg-emerald-50 text-emerald-600 rounded-2xl">
+                <QrCode size={24} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-slate-800 tracking-tight">Merchant Payment QR Code (Checkout)</h2>
+                <p className="text-sm text-slate-500 font-medium mt-1">Upload your Fonepay, Bank QR, or eSewa merchant QR code shown to customers during checkout.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+              {/* QR Upload & Preview */}
+              <div className="space-y-4">
+                <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em] ml-2">QR Code Image</label>
+                
+                {merchantQr.merchantQrCode ? (
+                  <div className="p-6 bg-slate-50 rounded-3xl border border-slate-200 flex flex-col items-center justify-center gap-4 relative">
+                    <div className="bg-white p-4 rounded-2xl shadow-md border border-slate-100 max-w-full">
+                      <img src={merchantQr.merchantQrCode} className="max-h-60 max-w-full object-contain" alt="Merchant QR Preview" />
+                    </div>
+                    <button
+                      onClick={() => setMerchantQr(p => ({ ...p, merchantQrCode: '' }))}
+                      className="flex items-center gap-2 text-[10px] font-black text-rose-500 uppercase tracking-widest bg-rose-50 px-4 py-2 rounded-xl hover:bg-rose-500 hover:text-white transition-colors"
+                    >
+                      <Trash2 size={14} /> Remove QR
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => qrFileInputRef.current?.click()}
+                    className="p-8 h-[220px] bg-emerald-50/40 rounded-3xl border-2 border-dashed border-emerald-200 flex flex-col items-center justify-center gap-3 hover:bg-emerald-50 hover:border-emerald-400 cursor-pointer transition-all"
+                  >
+                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm">
+                      <QrCode size={28} />
+                    </div>
+                    <p className="text-[11px] font-black text-emerald-600 uppercase tracking-widest">Click to upload Merchant QR</p>
+                    <p className="text-xs text-slate-400">Fonepay / eSewa / Khalti / Mobile Banking QR</p>
+                    <input type="file" ref={qrFileInputRef} onChange={handleQrUpload} className="hidden" accept="image/*" />
+                  </div>
+                )}
+
+                <div className="relative pt-2">
+                  <LinkIcon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    value={merchantQr.merchantQrCode.startsWith('data:') ? '' : merchantQr.merchantQrCode}
+                    onChange={(e) => setMerchantQr(p => ({ ...p, merchantQrCode: e.target.value }))}
+                    className="w-full h-11 pl-11 pr-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white text-xs text-slate-600"
+                    placeholder="Or paste external QR image URL..."
+                  />
+                </div>
+              </div>
+
+              {/* QR Metadata & Instructions */}
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em] ml-1">Payment Method Label</label>
+                  <input
+                    type="text"
+                    value={merchantQr.merchantQrName}
+                    onChange={(e) => setMerchantQr(p => ({ ...p, merchantQrName: e.target.value }))}
+                    className="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white text-sm font-bold text-slate-800"
+                    placeholder="Fonepay / Bank QR / eSewa"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em] ml-1">Merchant / Account Name</label>
+                  <input
+                    type="text"
+                    value={merchantQr.merchantQrAccountName}
+                    onChange={(e) => setMerchantQr(p => ({ ...p, merchantQrAccountName: e.target.value }))}
+                    className="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white text-sm font-bold text-slate-800"
+                    placeholder="eAlmari Enterprises Pvt. Ltd."
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em] ml-1">Account Number / Fonepay ID (Optional)</label>
+                  <input
+                    type="text"
+                    value={merchantQr.merchantQrAccountNumber}
+                    onChange={(e) => setMerchantQr(p => ({ ...p, merchantQrAccountNumber: e.target.value }))}
+                    className="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white text-sm font-bold text-slate-800"
+                    placeholder="e.g. 9801234567 or Bank A/C Number"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em] ml-1">Payment Instructions to Customer</label>
+                  <textarea
+                    value={merchantQr.merchantQrInstructions}
+                    onChange={(e) => setMerchantQr(p => ({ ...p, merchantQrInstructions: e.target.value }))}
+                    className="w-full h-24 p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white text-xs text-slate-600 resize-none leading-relaxed"
+                    placeholder="Scan QR code using Fonepay, eSewa, or mobile banking and enter transaction reference code."
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Master Color Palette Card */}
           <section className="bg-white rounded-[3rem] p-8 md:p-10 shadow-sm border border-gray-100">
             <div className="flex items-center gap-4 mb-8 pb-8 border-b border-gray-50">
               <div className="p-3.5 bg-amber-50 text-amber-600 rounded-2xl">
@@ -262,7 +442,7 @@ export const BrandIdentity: React.FC = () => {
               </div>
               <div>
                 <h2 className="text-2xl font-black text-slate-800 tracking-tight">Master Color Engine</h2>
-                <p className="text-sm text-slate-500 font-medium mt-1">Click the color swatches to adjust the global theme.</p>
+                <p className="text-sm text-slate-500 font-medium mt-1">Click the color swatches or enter hex codes. Swapping and picking colors will never close prematurely.</p>
               </div>
             </div>
 
@@ -286,7 +466,7 @@ export const BrandIdentity: React.FC = () => {
 
             <div className="relative z-10">
               <h3 className="text-xl font-black mb-2 tracking-tight">Live Contrast Check</h3>
-              <p className="text-slate-400 text-xs mb-8 font-medium">Preview how your colors interact in the wild.</p>
+              <p className="text-slate-400 text-xs mb-8 font-medium">Preview how your colors interact across storefront elements.</p>
 
               <div className="space-y-4">
                 {/* Fake Notification card */}
@@ -297,7 +477,7 @@ export const BrandIdentity: React.FC = () => {
                     </div>
                     <div>
                       <h4 className="font-bold text-sm">New Order #1042</h4>
-                      <p className="text-xs text-slate-500 mt-1">Check out our new UI contrast!</p>
+                      <p className="text-xs text-slate-500 mt-1">Theme Preview in real-time</p>
                     </div>
                   </div>
                   <button className="w-full mt-4 py-2.5 rounded-xl font-bold text-xs shadow-sm transition-colors" style={{ backgroundColor: colors.accentColor, color: colors.primaryColor }}>
@@ -312,11 +492,21 @@ export const BrandIdentity: React.FC = () => {
                     Trending
                   </span>
                 </div>
+
+                {/* QR Preview Card */}
+                {merchantQr.merchantQrCode && (
+                  <div className="bg-white/10 rounded-2xl p-4 border border-white/10">
+                    <div className="flex items-center gap-2 mb-2 text-emerald-400 text-xs font-bold">
+                      <QrCode size={14} /> Merchant QR Configured
+                    </div>
+                    <p className="text-[11px] text-white/70">{merchantQr.merchantQrName} ready for checkout.</p>
+                  </div>
+                )}
               </div>
 
               <div className="mt-8 pt-8 border-t border-white/10">
                 <p className="text-[10px] text-slate-400 font-medium leading-relaxed italic">
-                  Ensure your <span className="font-bold text-white">Primary</span> and <span className="font-bold text-white">Accent</span> colors have sufficient contrast against white and dark backgrounds for accessibility.
+                  Ensure your <span className="font-bold text-white">Primary</span> and <span className="font-bold text-white">Accent</span> colors have sufficient contrast against light and dark surfaces for optimal legibility.
                 </p>
               </div>
             </div>

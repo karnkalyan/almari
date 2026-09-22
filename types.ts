@@ -253,7 +253,11 @@ export interface SiteCustomization {
   showFlashDeals?: boolean;
   showPromoCards?: boolean;
   showCategories?: boolean;
-  showFooterBlocks?: boolean;
+  merchantQrCode?: string;
+  merchantQrName?: string;
+  merchantQrAccountName?: string;
+  merchantQrAccountNumber?: string;
+  merchantQrInstructions?: string;
   copyrightText?: string;
   paymentPartners?: { name: string; logo: string; enabled: boolean }[];
   chatSettings?: {

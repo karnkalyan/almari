@@ -41,10 +41,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   useEffect(() => {
     if (contextSite) {
-      if (contextSite.storeName) document.title = contextSite.storeName;
-      if (contextSite.logoImage) {
+      if (contextSite.storeName) document.title = `${contextSite.storeName} — Premium Online Shopping`;
+      const fav = contextSite.favicon || contextSite.logoImage || '/logo.jpg';
+      if (fav) {
         const link: HTMLLinkElement = document.querySelector("link[rel~='icon']") || document.createElement('link');
-        link.href = contextSite.logoImage;
+        link.type = fav.endsWith('.png') ? 'image/png' : 'image/jpeg';
+        link.rel = 'icon';
+        link.href = fav;
         document.getElementsByTagName('head')[0].appendChild(link);
       }
     }
