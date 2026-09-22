@@ -34,7 +34,7 @@ export const AboutUsManagement: React.FC = () => {
     stat_support: '24/7',
     // Contact
     contact_phone: '+977 9801234567',
-    contact_email: 'hello@cinedaraz.com',
+    contact_email: 'hello@ealmari.com',
     contact_address: 'Kathmandu, Nepal'
   });
   const [loading, setLoading] = useState(true);
@@ -65,7 +65,7 @@ export const AboutUsManagement: React.FC = () => {
           stat_delivery: val.stat_delivery || '24h',
           stat_support: val.stat_support || '24/7',
           contact_phone: val.contact_phone || '+977 9801234567',
-          contact_email: val.contact_email || 'hello@cinedaraz.com',
+          contact_email: val.contact_email || 'hello@ealmari.com',
           contact_address: val.contact_address || 'Kathmandu, Nepal'
         });
       }
@@ -120,7 +120,7 @@ export const AboutUsManagement: React.FC = () => {
               <span className="px-4 py-1.5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-full">Editor v2.0</span>
            </div>
            <h1 className="text-5xl font-black text-slate-800 tracking-tight leading-none mb-4">About Us Management</h1>
-           <p className="text-slate-500 font-medium max-w-2xl text-lg">Curate the story and core identity of CineDaraz for your customers.</p>
+           <p className="text-slate-500 font-medium max-w-2xl text-lg">Curate the story and core identity of eAlmari for your customers.</p>
         </div>
         <button
           onClick={handleSave}
@@ -151,6 +151,7 @@ export const AboutUsManagement: React.FC = () => {
                     className="w-full h-16 px-8 bg-gray-50 border-none rounded-[2rem] font-bold text-slate-800 focus:ring-4 focus:ring-blue-500/5 focus:bg-white transition-all text-lg shadow-inner"
                     value={settings.about_hero_title}
                     onChange={e => setSettings({ ...settings, about_hero_title: e.target.value })}
+                    placeholder="About eAlmari"
                   />
                 </div>
                 <div className="space-y-3">
@@ -159,6 +160,7 @@ export const AboutUsManagement: React.FC = () => {
                     className="w-full h-16 px-8 bg-gray-50 border-none rounded-[2rem] font-bold text-slate-800 focus:ring-4 focus:ring-blue-500/5 focus:bg-white transition-all text-lg shadow-inner"
                     value={settings.about_hero_image}
                     onChange={e => setSettings({ ...settings, about_hero_image: e.target.value })}
+                    placeholder="https://images.unsplash.com/..."
                   />
                 </div>
                 <div className="md:col-span-2 space-y-3">
@@ -167,6 +169,7 @@ export const AboutUsManagement: React.FC = () => {
                     className="w-full min-h-[100px] p-8 bg-gray-50 border-none rounded-[2.5rem] font-medium text-slate-600 focus:ring-4 focus:ring-blue-500/5 focus:bg-white transition-all text-lg shadow-inner resize-none"
                     value={settings.about_hero_subtitle}
                     onChange={e => setSettings({ ...settings, about_hero_subtitle: e.target.value })}
+                    placeholder="Your trusted destination for premium fashion and quality lifestyle products."
                   />
                 </div>
               </div>
@@ -178,6 +181,7 @@ export const AboutUsManagement: React.FC = () => {
                     className="w-full h-16 px-8 bg-gray-50 border-none rounded-[2rem] font-bold text-slate-800 focus:ring-4 focus:ring-amber-500/5 focus:bg-white transition-all text-lg shadow-inner"
                     value={settings.about_story_title}
                     onChange={e => setSettings({ ...settings, about_story_title: e.target.value })}
+                    placeholder="Elevating Shopping Standards in Nepal since 2025"
                   />
                 </div>
                 <div className="space-y-3">
@@ -186,6 +190,7 @@ export const AboutUsManagement: React.FC = () => {
                     className="w-full min-h-[250px] p-10 bg-gray-50 border-none rounded-[3rem] font-medium text-slate-600 focus:ring-4 focus:ring-amber-500/5 focus:bg-white transition-all text-lg shadow-inner leading-relaxed"
                     value={settings.about_story_content}
                     onChange={e => setSettings({ ...settings, about_story_content: e.target.value })}
+                    placeholder="eAlmari started with a simple mission..."
                   />
                 </div>
               </div>
@@ -285,7 +290,7 @@ export const AboutUsManagement: React.FC = () => {
               className="w-full min-h-[150px] p-8 bg-gray-50 border-none rounded-[2.5rem] font-medium text-slate-600 focus:ring-4 focus:ring-slate-500/5 focus:bg-white transition-all text-lg shadow-inner resize-none"
               value={settings.about_footer_text}
               onChange={e => setSettings({ ...settings, about_footer_text: e.target.value })}
-              placeholder="CineDaraz is your trusted..."
+              placeholder="eAlmari is your trusted..."
             />
           </section>
         </div>

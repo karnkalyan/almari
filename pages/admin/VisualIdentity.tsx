@@ -29,12 +29,12 @@ export const BrandIdentity: React.FC = () => {
   }
 
   const [colors, setColors] = useState({
-    primaryColor: site.primaryColor || '#002f4a',
-    secondaryColor: site.secondaryColor || '#64748b',
+    primaryColor: site.primaryColor || '#002D42',
+    secondaryColor: site.secondaryColor || '#475569',
     tertiaryColor: site.tertiaryColor || '#94a3b8',
     quaternaryColor: site.quaternaryColor || '#cbd5e1',
-    accentColor: site.accentColor || '#E5A823',
-    accentHighlights: site.accentHighlights || '#f59e0b'
+    accentColor: site.accentColor || '#D49B24',
+    accentHighlights: site.accentHighlights || '#F59E0B'
   });
 
   const [branding, setBranding] = useState({
@@ -45,12 +45,12 @@ export const BrandIdentity: React.FC = () => {
 
   useEffect(() => {
     setColors({
-      primaryColor: site.primaryColor || '#002f4a',
-      secondaryColor: site.secondaryColor || '#64748b',
+      primaryColor: site.primaryColor || '#002D42',
+      secondaryColor: site.secondaryColor || '#475569',
       tertiaryColor: site.tertiaryColor || '#94a3b8',
       quaternaryColor: site.quaternaryColor || '#cbd5e1',
-      accentColor: site.accentColor || '#E5A823',
-      accentHighlights: site.accentHighlights || '#f59e0b'
+      accentColor: site.accentColor || '#D49B24',
+      accentHighlights: site.accentHighlights || '#F59E0B'
     });
     setBranding({
       storeName: site.storeName || '',

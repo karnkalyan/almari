@@ -14,7 +14,7 @@ import { Blog } from './pages/Blog';
 import { BlogDetails } from './pages/BlogDetails';
 import { About } from './pages/About';
 import { Product, CartItem, SiteCustomization } from './types';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Toaster } from 'react-hot-toast';
 import Coupons from './pages/Coupons';
 import Offers from './pages/Offers';
@@ -53,7 +53,6 @@ import { AboutUsManagement } from './pages/admin/AboutUsManagement';
 import { HomepageBuilder } from './pages/admin/HomepageBuilder';
 import { AdminProfile } from './pages/admin/Profile';
 
-
 // Context Definition
 interface ShopContextType {
   cart: CartItem[];
@@ -84,8 +83,6 @@ const ScrollToTop = () => {
   return null;
 };
 
-import { useAuth } from './contexts/AuthContext';
-
 // Route wrapper to conditionally render Layout or AdminLayout
 const AppRoutes = () => {
   const { user, loading: authLoading } = useAuth();
@@ -95,7 +92,7 @@ const AppRoutes = () => {
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#002f4a]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#002D42]"></div>
       </div>
     );
   }
@@ -178,9 +175,9 @@ const App: React.FC = () => {
   }, []);
 
   const injectStyles = () => {
-    const primary = site.primaryColor || '#002f4a';
-    const accent = site.accentColor || '#E5A823';
-    const secondary = site.secondaryColor || '#64748b';
+    const primary = site.primaryColor || '#002D42';
+    const accent = site.accentColor || '#D49B24';
+    const secondary = site.secondaryColor || '#475569';
     const tertiary = site.tertiaryColor || '#94a3b8';
     const quaternary = site.quaternaryColor || '#cbd5e1';
     
@@ -229,7 +226,6 @@ const App: React.FC = () => {
   }, []);
 
   const addToCart = (product: Product, selectedServiceTitles: string[] = []) => {
-    // Check if item already exists
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id);
       const nextQuantity = existing ? existing.quantity + 1 : 1;
@@ -253,8 +249,6 @@ const App: React.FC = () => {
   };
 
   const removeFromCart = (productId: string) => {
-    // Remove all instances of this product for simplicity in this demo,
-    // or we could decrement. Let's stick to remove item completely.
     setCart(prev => prev.filter(item => item.id !== productId));
   };
 

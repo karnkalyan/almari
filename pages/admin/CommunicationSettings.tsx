@@ -132,7 +132,7 @@ export const CommunicationSettings: React.FC = () => {
                     />
                     <input 
                       className="h-12 px-4 border border-gray-200 rounded-xl bg-white font-bold text-sm outline-none" 
-                      placeholder={gateway.providerName === 'Aakash SMS' ? "Sender ID (CineDaraz)" : "Sender ID / Number"} 
+                      placeholder={gateway.providerName === 'Aakash SMS' ? "Sender ID (eAlmari)" : "Sender ID / Number"} 
                       value={gateway.senderId || ''} 
                       onChange={e => { const n = [...data]; n[idx].senderId = e.target.value; setData(n); }} 
                     />

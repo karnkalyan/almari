@@ -192,18 +192,19 @@ async function main() {
   // 7. Site Settings (Slider, Config, etc)
   console.log('⚙️ Seeding site customization...');
   const siteConfig = {
-    storeName: "CineDaraz",
-    logoText: "CINEDARAZ",
-    primaryColor: "#0b53b1",
-    accentColor: "#E5A823",
-    secondaryColor: "#64748b",
+    storeName: "eAlmari",
+    logoText: "eAlmari",
+    logoImage: "/logo.jpg",
+    primaryColor: "#002D42",
+    accentColor: "#D49B24",
+    secondaryColor: "#475569",
     tertiaryColor: "#94a3b8",
     quaternaryColor: "#cbd5e1",
-    accentHighlights: "#f59e0b",
+    accentHighlights: "#F59E0B",
     supportPhone: "+977 9801234567",
-    supportEmail: "hello@cinedaraz.com",
+    supportEmail: "hello@ealmari.com",
     address: "Kathmandu, Nepal",
-    footerAbout: "The most premium online shopping destination in Nepal. Quality guaranteed.",
+    footerAbout: "eAlmari is Nepal's premier online shopping destination. Authentic products, best prices, and fast delivery.",
     heroSlides: [
       {
         badge: "Special Summer Offer!",
@@ -262,11 +263,11 @@ async function main() {
       }
     ],
     // About Us Page Data
-    about_hero_title: "About CineDaraz",
-    about_hero_subtitle: "Your trusted destination for premium organic food and high-quality lifestyle products in Nepal.",
+    about_hero_title: "About eAlmari",
+    about_hero_subtitle: "Your trusted destination for premium fashion, apparel and lifestyle products in Nepal.",
     about_hero_image: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1200",
     about_story_title: "Elevating Shopping Standards in Nepal since 2025",
-    about_story_content: "The most premium online shopping destination in Nepal. Quality guaranteed. Almari started with a simple mission: to provide every household in Nepal with access to genuine, high-quality products at fair prices.",
+    about_story_content: "Nepal's premier online shopping destination. Quality guaranteed. eAlmari started with a simple mission: to provide every household in Nepal with access to genuine, high-quality products at fair prices.",
     about_story_image: "https://images.unsplash.com/photo-1516594798947-e65505dbb29d?auto=format&fit=crop&q=80&w=1200",
     stat_customers: "50k+",
     stat_products: "10k+",
@@ -536,7 +537,7 @@ async function main() {
     { name: 'new_order_admin', subject: 'NEW ORDER ALERT - #{order_id}', body: '<h1>New Order Received</h1><p>Admin, you have a new order #{order_id} from {customer_name}. Total: NPR {total}.</p>' },
     { name: 'new_order_customer', subject: 'Order Confirmed - #{order_id}', body: '<h1>Thank You!</h1><p>Hello {customer_name}, your order #{order_id} has been received and is being processed.</p>' },
     { name: 'order_status', subject: 'Order Update - #{order_id}', body: '<h1>Order Update</h1><p>Your order #{order_id} is now {status}.</p>' },
-    { name: 'new_user', subject: 'Welcome to CineDaraz!', body: '<h1>Welcome</h1><p>Hello {customer_name}, welcome to our store.</p>' },
+    { name: 'new_user', subject: 'Welcome to eAlmari!', body: '<h1>Welcome</h1><p>Hello {customer_name}, welcome to our store.</p>' },
     { name: 'low_stock', subject: 'Low Stock Alert: {product_name}', body: '<h1>Inventory Alert</h1><p>Product {product_name} (SKU: {sku}) is running low on stock. Only {stock} left.</p>' }
   ];
 
@@ -550,7 +551,7 @@ async function main() {
 
   const smsTemplates = [
     { name: 'new_order_admin', body: 'New Order: #{order_id} from {customer_name}. Total: {total}.' },
-    { name: 'new_order_customer', body: 'Hi {customer_name}, your order #{order_id} is confirmed. Team CineDaraz.' },
+    { name: 'new_order_customer', body: 'Hi {customer_name}, your order #{order_id} is confirmed. Team eAlmari.' },
     { name: 'order_status', body: 'Order #{order_id} status updated to {status}.' }
   ];
 
@@ -579,9 +580,9 @@ async function main() {
   // 10. Admin Notification Recipients
   console.log('👥 Seeding notification recipients...');
   const recipients = [
-    { type: 'email', value: 'admin@cinedaraz.com', name: 'Primary Admin', isActive: true },
-    { type: 'email', value: 'orders@cinedaraz.com', name: 'Order Processing', isActive: true },
-    { type: 'email', value: 'support@cinedaraz.com', name: 'Customer Support', isActive: true },
+    { type: 'email', value: 'admin@ealmari.com', name: 'Primary Admin', isActive: true },
+    { type: 'email', value: 'orders@ealmari.com', name: 'Order Processing', isActive: true },
+    { type: 'email', value: 'support@ealmari.com', name: 'Customer Support', isActive: true },
     { type: 'sms', value: '9801234567', name: 'Admin Primary SMS', isActive: true },
     { type: 'sms', value: '9841000000', name: 'Operations SMS', isActive: true }
   ];
@@ -602,7 +603,7 @@ async function main() {
       providerName: 'Aakash SMS (Nepal)',
       gatewayUrl: 'https://sms.aakashsms.com/sms/v3/send',
       apiKey: 'YOUR_AAKASH_TOKEN',
-      senderId: 'CineDaraz',
+      senderId: 'eAlmari',
       authToken: 'YOUR_AAKASH_TOKEN',
       isActive: true
     },
@@ -611,7 +612,7 @@ async function main() {
       providerName: 'Aakash SMS (Nepal)',
       gatewayUrl: 'https://sms.aakashsms.com/sms/v3/send',
       apiKey: 'YOUR_AAKASH_TOKEN',
-      senderId: 'CineDaraz',
+      senderId: 'eAlmari',
       authToken: 'YOUR_AAKASH_TOKEN',
       isActive: true
     }

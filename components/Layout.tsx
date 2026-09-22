@@ -96,8 +96,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   const isAdmin = user && ['admin', 'super_admin', 'editor', 'sell_staff', 'crm_staff'].includes(user.role);
-  const primaryColor = site.primaryColor || '#002f4a';
-  const accentColor = site.accentColor || '#E5A823';
+  const primaryColor = site.primaryColor || '#002D42';
+  const accentColor = site.accentColor || '#D49B24';
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 font-inter" style={{ 
@@ -130,16 +130,16 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
           <div className="flex gap-4 items-center">
              <div className="hidden md:flex gap-1 hover:text-white cursor-pointer transition">
-               <MapPin size={14} className="text-[#E5A823]" />
+               <MapPin size={14} className="text-[#D49B24]" />
                <span>{site.location || "Kathmandu, Nepal"}</span>
              </div>
-             <div className="h-3 w-px bg-[#004266] hidden md:block"></div>
+             <div className="h-3 w-px bg-white/10 hidden md:block"></div>
              {isAdmin && (
-               <Link to="/admin" className="flex items-center gap-1 hover:text-[#E5A823] transition-colors font-bold text-white bg-white/10 px-2 py-0.5 rounded">
+               <Link to="/admin" className="flex items-center gap-1 hover:text-[#D49B24] transition-colors font-bold text-white bg-white/10 px-2 py-0.5 rounded">
                  <ShieldCheck size={12} /> Admin Panel
                </Link>
              )}
-             <div className="h-3 w-px bg-[#004266] hidden md:block"></div>
+             <div className="h-3 w-px bg-white/10 hidden md:block"></div>
              <div className="flex gap-3">
                <select className="bg-transparent border-none text-gray-300 text-xs focus:ring-0 cursor-pointer p-0 font-medium">
                  <option className="text-slate-800">English</option>
@@ -156,19 +156,27 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       {/* Main Header */}
       <header className="bg-white sticky top-0 z-40 shadow-sm border-b border-gray-100">
-        <div className="container mx-auto px-4 py-4 md:py-5">
+        <div className="container mx-auto px-4 py-3 md:py-4">
           <div className="flex items-center justify-between gap-4 lg:gap-8">
             
             {/* Logo */}
             <div className="flex items-center gap-4 flex-shrink-0">
                <Link to="/" className="flex items-center gap-2 group">
-                 <div className="relative flex items-baseline">
-                   <div className="text-3xl font-bold tracking-tighter">
-                     <span style={{ color: accentColor }}>{site.logoText?.charAt(0) || 'e'}</span>
-                     <span style={{ color: primaryColor }}>{site.logoText?.substring(1) || 'Almari'}</span>
+                 {site.logoImage ? (
+                   <img 
+                     src={site.logoImage} 
+                     alt={site.storeName || site.logoText || 'eAlmari'} 
+                     className="h-10 md:h-12 w-auto max-w-[180px] md:max-w-[220px] object-contain transition-transform group-hover:scale-105 duration-300" 
+                   />
+                 ) : (
+                   <div className="relative flex items-baseline">
+                     <div className="text-3xl font-black tracking-tighter">
+                       <span style={{ color: accentColor }}>{site.logoText?.charAt(0) || 'e'}</span>
+                       <span style={{ color: primaryColor }}>{site.logoText?.substring(1) || 'Almari'}</span>
+                     </div>
+                     <div className="w-2 h-2 rounded-full ml-1 animate-pulse" style={{ backgroundColor: accentColor }}></div>
                    </div>
-                   <div className="w-2 h-2 rounded-full ml-1 animate-pulse" style={{ backgroundColor: accentColor }}></div>
-                 </div>
+                 )}
                </Link>
             </div>
 
@@ -487,9 +495,19 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
             <div className="md:col-span-1">
-               <div className="text-2xl font-bold text-[#002f4a] mb-6">{site.logoText || site.storeName || 'Almari'}</div>
-               <p className="text-gray-500 text-sm mb-6 leading-relaxed">{site.footerAbout || "Nepal's premier online shopping destination. Authentic products, best prices, and fast delivery."}</p>
-               <p className="text-xl font-bold text-[#002f4a]">{site.supportPhone || "+977 9801234567"}</p>
+               {site.logoImage ? (
+                 <img 
+                   src={site.logoImage} 
+                   alt={site.storeName || site.logoText || 'eAlmari'} 
+                   className="h-10 w-auto max-w-[180px] object-contain mb-6" 
+                 />
+               ) : (
+                 <div className="text-2xl font-black tracking-tight mb-6" style={{ color: primaryColor }}>
+                   {site.logoText || site.storeName || 'eAlmari'}
+                 </div>
+               )}
+               <p className="text-gray-500 text-sm mb-6 leading-relaxed">{site.footerAbout || "eAlmari is Nepal's premier online shopping destination. Authentic products, best prices, and fast delivery."}</p>
+               <p className="text-xl font-bold" style={{ color: primaryColor }}>{site.supportPhone || "+977 9801234567"}</p>
             </div>
             
             {site.footerColumns && site.footerColumns.length > 0 ? (
@@ -543,7 +561,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
           <div className="border-t py-12 flex flex-col md:flex-row justify-between items-center gap-6">
              <div className="text-gray-400 text-sm font-medium">
-               {site.copyrightText || `Copyright ${new Date().getFullYear()} © Almari / CineDaraz. All rights reserved.`}
+               {site.copyrightText || `Copyright ${new Date().getFullYear()} © eAlmari. All rights reserved.`}
              </div>
              <div className="flex items-center gap-8">
                 <Link to="/terms" className="text-gray-400 text-xs font-bold hover:text-[var(--brand-primary)] transition-colors uppercase tracking-widest">Terms</Link>

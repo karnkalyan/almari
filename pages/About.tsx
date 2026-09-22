@@ -58,7 +58,7 @@ export const About: React.FC = () => {
         <div className="relative z-10 text-center px-4">
           <span className="px-6 py-2 bg-white/10 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-[0.3em] text-white/80 border border-white/20 mb-6 inline-block">Established 2025</span>
           <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight leading-none">
-            {site.about_hero_title || `About ${site.storeName || 'CineDaraz'}`}
+            {site.about_hero_title || `About ${site.storeName || 'eAlmari'}`}
           </h1>
           <p className="text-white/80 text-lg md:text-2xl max-w-3xl mx-auto font-medium leading-relaxed">
             {site.about_hero_subtitle || "Your trusted destination for premium organic food and high-quality lifestyle products in Nepal."}
@@ -113,7 +113,7 @@ export const About: React.FC = () => {
          <div className="container mx-auto px-4 relative z-10">
             <div className="text-center mb-20 space-y-4">
                <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Our Momentum</span>
-               <h2 className="text-5xl font-black text-white tracking-tight">The CineDaraz Team</h2>
+               <h2 className="text-5xl font-black text-white tracking-tight">The eAlmari Team</h2>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
                {stats.map((stat, i) => (
@@ -133,7 +133,7 @@ export const About: React.FC = () => {
       {/* Contact Banner */}
       <section className="py-32">
          <div className="container mx-auto px-4">
-            <div className="bg-[#002f4a] rounded-[5rem] p-16 md:p-32 relative overflow-hidden text-center text-white border border-white/5 shadow-2xl">
+            <div className="bg-[#002D42] rounded-[5rem] p-16 md:p-32 relative overflow-hidden text-center text-white border border-white/5 shadow-2xl">
                <div className="relative z-10 max-w-5xl mx-auto space-y-16">
                   <h2 className="text-4xl md:text-6xl font-black leading-tight tracking-tight">Need assistance? Our team is here to help you 24/7</h2>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
@@ -148,7 +148,7 @@ export const About: React.FC = () => {
                         <div className="w-20 h-20 rounded-[2rem] bg-white/10 flex items-center justify-center text-amber-400 group-hover:bg-amber-400 group-hover:text-slate-900 transition-all duration-500 shadow-xl"><Mail size={32} /></div>
                         <div>
                            <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 mb-2">Email Us</p>
-                           <p className="text-2xl font-black tracking-tight">{site.contact_email || 'hello@cinedaraz.com'}</p>
+                           <p className="text-2xl font-black tracking-tight">{site.contact_email || 'hello@ealmari.com'}</p>
                         </div>
                      </div>
                      <div className="flex flex-col items-center gap-6 group">
