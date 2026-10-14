@@ -85,8 +85,8 @@ export const StoreSettings: React.FC = () => {
     <div className="space-y-8 pb-24 animate-in fade-in duration-700">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight">Store Logic & Templates</h1>
-          <p className="text-gray-500 font-medium mt-1">Configure structural templates and dynamic homepage behavior.</p>
+          <h1 className="text-3xl font-black text-slate-800 tracking-tight">Store Settings</h1>
+          <p className="text-gray-500 font-medium mt-1">Configure store templates and dynamic homepage behavior.</p>
         </div>
         <button 
           onClick={handleSave}

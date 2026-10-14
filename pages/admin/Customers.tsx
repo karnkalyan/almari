@@ -57,8 +57,8 @@ export const AdminCustomers: React.FC = () => {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight">Customer Database</h1>
-          <p className="text-gray-500 font-medium">Manage user relationships, verify accounts, and monitor loyalty.</p>
+          <h1 className="text-3xl font-black text-slate-800 tracking-tight">Customers</h1>
+          <p className="text-gray-500 font-medium">View and manage registered customers.</p>
         </div>
       </div>
 
@@ -80,11 +80,11 @@ export const AdminCustomers: React.FC = () => {
           <table className="w-full text-left">
             <thead className="bg-gray-50/50 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-50">
               <tr>
-                <th className="px-8 py-6">Identity</th>
-                <th className="px-8 py-6">Connectivity</th>
+                <th className="px-8 py-6">Customer</th>
+                <th className="px-8 py-6">Contact</th>
                 <th className="px-8 py-6">Location</th>
-                <th className="px-8 py-6 text-center">Engagement</th>
-                <th className="px-8 py-6 text-right">Action</th>
+                <th className="px-8 py-6 text-center">Orders & Spend</th>
+                <th className="px-8 py-6 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">

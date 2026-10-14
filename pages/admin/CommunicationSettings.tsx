@@ -431,8 +431,8 @@ export const CommunicationSettings: React.FC = () => {
             <Bell size={24} />
           </div>
           <div>
-            <h1 className="text-3xl font-black text-slate-800 tracking-tight leading-none uppercase">Notification Hub</h1>
-            <p className="text-gray-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-2">Centralized Email & SMS orchestration engine</p>
+            <h1 className="text-3xl font-black text-slate-800 tracking-tight leading-none uppercase">Email & SMS Settings</h1>
+            <p className="text-gray-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-2">Email & SMS notifications and message templates</p>
           </div>
         </div>
       </div>

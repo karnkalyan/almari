@@ -300,12 +300,28 @@ class ApiService {
     return response.json();
   }
 
+  async createUser(userData: { name: string; email: string; password: string; phone?: string; role?: string }): Promise<User> {
+    const response = await fetch(`${API_BASE_URL}/users`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
+      body: JSON.stringify(userData),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to create user');
+    }
+    return response.json();
+  }
+
   async deleteUser(id: string): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/users/${id}`, {
       method: 'DELETE',
       headers: this.getAuthHeaders(),
     });
-    if (!response.ok) throw new Error('Failed to delete user');
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to delete user');
+    }
   }
 
   async updateUserRole(id: string, role: string): Promise<User> {
@@ -314,7 +330,10 @@ class ApiService {
       headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
       body: JSON.stringify({ role }),
     });
-    if (!response.ok) throw new Error('Failed to update user role');
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to update user role');
+    }
     return response.json();
   }
 

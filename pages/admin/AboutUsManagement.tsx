@@ -119,7 +119,7 @@ export const AboutUsManagement: React.FC = () => {
            <div className="flex items-center gap-3 mb-4">
               <span className="px-4 py-1.5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-full">Editor v2.0</span>
            </div>
-           <h1 className="text-5xl font-black text-slate-800 tracking-tight leading-none mb-4">About Us Management</h1>
+           <h1 className="text-5xl font-black text-slate-800 tracking-tight leading-none mb-4">About Us</h1>
            <p className="text-slate-500 font-medium max-w-2xl text-lg">Curate the story and core identity of eAlmari for your customers.</p>
         </div>
         <button

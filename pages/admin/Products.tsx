@@ -53,11 +53,11 @@ export const AdminProducts: React.FC = () => {
     <div className="space-y-8 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight">Product Catalog</h1>
+          <h1 className="text-2xl font-black text-slate-800 tracking-tight">Manage Products</h1>
           <p className="text-gray-500 text-sm">Manage inventory, pricing, and visibility across the store.</p>
         </div>
         <Link to="/admin/products/new" className="px-6 py-2.5 bg-[var(--brand-primary)] text-white rounded-xl text-sm font-bold shadow-lg shadow-[var(--brand-primary)]/20 hover:bg-[#003d61] transition flex items-center gap-2">
-          <Plus size={18} /> New Product
+          <Plus size={18} /> Add Product
         </Link>
       </div>
 

@@ -58,8 +58,8 @@ export const AdminSubscribers: React.FC = () => {
     <div className="space-y-6 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight">Newsletter Audience</h1>
-          <p className="text-gray-500 font-medium mt-1">Manage your marketing reach and subscriber engagement.</p>
+          <h1 className="text-3xl font-black text-slate-800 tracking-tight">Subscribers</h1>
+          <p className="text-gray-500 font-medium mt-1">Manage newsletter subscribers and marketing email lists.</p>
         </div>
         <div className="flex gap-3">
            <button 
