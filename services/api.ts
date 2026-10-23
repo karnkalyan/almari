@@ -217,7 +217,7 @@ class ApiService {
     return this.normalizeOrder(await response.json());
   }
 
-  async createOrder(order: { addressId?: string; address?: any; customer?: any; items: { productId: string; quantity: number; price: number; selectedServices?: ProductAdditionalService[] }[]; total: number; shippingCharge?: number; promoCode?: string }): Promise<Order> {
+  async createOrder(order: { addressId?: string; address?: any; customer?: any; items: { productId: string; quantity: number; price: number; selectedServices?: ProductAdditionalService[] }[]; total: number; shippingCharge?: number; promoCode?: string; notes?: string }): Promise<Order> {
     const response = await fetch(`${API_BASE_URL}/orders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },

@@ -3,7 +3,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { ShopContext } from '../../App';
 import { apiService } from '../../services/api';
 import toast from 'react-hot-toast';
-import { Settings2, Save, Grid3X3, LayoutTemplate, ShieldCheck, RefreshCw, Smartphone, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Settings2, Save, Grid3X3, LayoutTemplate, ShieldCheck, RefreshCw, Smartphone, ChevronLeft, ChevronRight, Globe, ExternalLink, Copy, Check } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 
@@ -34,6 +34,7 @@ export const StoreSettings: React.FC = () => {
     shopTemplate: 'sidebar',
     productTemplate: 'classic'
   });
+  const [copiedSitemap, setCopiedSitemap] = useState(false);
 
   if (user?.role !== 'super_admin' && user?.role !== 'admin') {
     return <Navigate to="/admin" replace />;
@@ -203,6 +204,90 @@ export const StoreSettings: React.FC = () => {
                   <p className="text-white/40 text-xs font-medium leading-relaxed">Template changes affect all customer sessions instantly. Ensure you have previewed the templates in a staging environment.</p>
                </div>
                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+            </div>
+         </section>
+
+         {/* Search Engine Optimization (SEO) & Sitemap */}
+         <section className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-100">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+               <div className="flex items-center gap-3">
+                  <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-2xl">
+                     <Globe size={24} />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-800 tracking-tight">Search Engine Optimization & Sitemap</h2>
+                    <p className="text-xs text-gray-400 font-medium">Automatic XML sitemap and indexing rules for Google and Bing</p>
+                  </div>
+               </div>
+               <span className="px-3.5 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm w-fit">
+                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                 SEO Active & Indexed
+               </span>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+               <div className="p-6 bg-gray-50/70 border border-gray-100 rounded-2xl space-y-3">
+                  <div className="flex items-center justify-between">
+                     <div className="flex items-center gap-2">
+                        <span className="text-xs font-black uppercase tracking-wider text-slate-700">XML Sitemap</span>
+                        <span className="text-[10px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-md">Protocol 0.9</span>
+                     </div>
+                     <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}/sitemap.xml`);
+                            setCopiedSitemap(true);
+                            toast.success('Sitemap URL copied to clipboard');
+                            setTimeout(() => setCopiedSitemap(false), 2000);
+                          }}
+                          className="px-2.5 py-1 bg-white hover:bg-gray-100 text-slate-700 border border-gray-200 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm transition cursor-pointer"
+                        >
+                          {copiedSitemap ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                          <span>{copiedSitemap ? 'Copied' : 'Copy URL'}</span>
+                        </button>
+                        <a
+                          href="/sitemap.xml"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm transition"
+                        >
+                          <ExternalLink size={12} />
+                          <span>View XML</span>
+                        </a>
+                     </div>
+                  </div>
+                  <p className="text-xs text-gray-500 font-medium">
+                    Auto-generated XML sitemap containing products, categories, blog articles, and storefront landing pages.
+                  </p>
+                  <div className="p-3 bg-white rounded-xl border border-gray-200/80 font-mono text-[11px] text-slate-600 select-all break-all">
+                    {typeof window !== 'undefined' ? `${window.location.origin}/sitemap.xml` : 'https://ealmari.com.np/sitemap.xml'}
+                  </div>
+               </div>
+
+               <div className="p-6 bg-gray-50/70 border border-gray-100 rounded-2xl space-y-3">
+                  <div className="flex items-center justify-between">
+                     <div className="flex items-center gap-2">
+                        <span className="text-xs font-black uppercase tracking-wider text-slate-700">Robots.txt Rules</span>
+                        <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-md">Configured</span>
+                     </div>
+                     <a
+                       href="/robots.txt"
+                       target="_blank"
+                       rel="noreferrer"
+                       className="px-2.5 py-1 bg-white hover:bg-gray-100 text-slate-700 border border-gray-200 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm transition"
+                     >
+                       <ExternalLink size={12} />
+                       <span>View Rules</span>
+                     </a>
+                  </div>
+                  <p className="text-xs text-gray-500 font-medium">
+                    Guides search engine crawlers to index all storefront routes while protecting admin and checkout paths.
+                  </p>
+                  <div className="p-3 bg-white rounded-xl border border-gray-200/80 font-mono text-[11px] text-slate-600 select-all break-all">
+                    {typeof window !== 'undefined' ? `${window.location.origin}/robots.txt` : 'https://ealmari.com.np/robots.txt'}
+                  </div>
+               </div>
             </div>
          </section>
       </div>

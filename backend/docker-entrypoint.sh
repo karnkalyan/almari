@@ -10,10 +10,13 @@ echo "✅ MySQL database is reachable!"
 echo "🔄 Running database migrations..."
 npx prisma migrate deploy || npx prisma db push
 
-SEED_DATABASE=${SEED_DATABASE:-true}
+# Never wipe or reset existing data on container boot/update!
+SEED_DATABASE=${SEED_DATABASE:-false}
 if [ "$SEED_DATABASE" = "true" ]; then
-  echo "🌱 Seeding initial database data..."
+  echo "🌱 Checking if initial seed is required (SEED_DATABASE=true)..."
   node seed.js || true
+else
+  echo "🛡️ Preserving existing database data and uploaded media (SEED_DATABASE=false)."
 fi
 
 echo "🚀 Starting Almari Backend server..."

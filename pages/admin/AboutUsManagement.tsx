@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { apiService } from '../../services/api';
 import toast from 'react-hot-toast';
+import { ImageUploadOrUrl } from '../../components/admin/ImageUploadOrUrl';
 
 export const AboutUsManagement: React.FC = () => {
   const [settings, setSettings] = useState<any>({
@@ -155,12 +156,13 @@ export const AboutUsManagement: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-3">Hero Image</label>
-                  <input
-                    className="w-full h-16 px-8 bg-gray-50 border-none rounded-[2rem] font-bold text-slate-800 focus:ring-4 focus:ring-blue-500/5 focus:bg-white transition-all text-lg shadow-inner"
-                    value={settings.about_hero_image}
-                    onChange={e => setSettings({ ...settings, about_hero_image: e.target.value })}
-                    placeholder="https://images.unsplash.com/..."
+                  <ImageUploadOrUrl
+                    label="Hero Image"
+                    value={settings.about_hero_image || ''}
+                    onChange={(newImage) => setSettings({ ...settings, about_hero_image: newImage })}
+                    aspectRatio="aspect-[16/9]"
+                    placeholder="https://images.unsplash.com/... or upload"
+                    helperText="Hero background image shown at top of the About page"
                   />
                 </div>
                 <div className="md:col-span-2 space-y-3">

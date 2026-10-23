@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LayoutDashboard, Plus, Settings2, Trash2, GripVertical, Save, Image as ImageIcon, Copy, ArrowUp, ArrowDown } from 'lucide-react';
 import { apiService } from '../../services/api';
 import toast from 'react-hot-toast';
+import { ImageUploadOrUrl } from '../../components/admin/ImageUploadOrUrl';
 
 const SECTION_TYPES = [
   'Hero Slider', 'Hero Bottom Promo Cards', 'Promo Banner', 'Promo Cards',
@@ -216,16 +217,16 @@ export const HomepageBuilder: React.FC = () => {
                                   </button>
                                </div>
                                <div className="grid grid-cols-2 gap-3">
-                                  <input 
-                                    className="bg-gray-50 px-3 py-2 rounded-lg text-[10px] font-bold outline-none border border-transparent focus:bg-white focus:border-gray-200" 
-                                    value={item.image || ''} 
-                                    placeholder="Image URL"
-                                    onChange={e => {
+                                  <ImageUploadOrUrl
+                                    compact={true}
+                                    value={item.image || ''}
+                                    onChange={(newImage) => {
                                       const updatedItems = [...editingSection.items];
-                                      updatedItems[idx].image = e.target.value;
+                                      updatedItems[idx].image = newImage;
                                       setEditingSection({ ...editingSection, items: updatedItems });
+                                      apiService.updateHomepageSectionItem(item.id, { image: newImage });
                                     }}
-                                    onBlur={() => apiService.updateHomepageSectionItem(item.id, { image: item.image })}
+                                    placeholder="Image URL or upload"
                                   />
                                   <input 
                                     className="bg-gray-50 px-3 py-2 rounded-lg text-[10px] font-bold outline-none border border-transparent focus:bg-white focus:border-gray-200" 

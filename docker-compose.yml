@@ -34,8 +34,13 @@ services:
       NODE_ENV: production
       DATABASE_URL: "mysql://admin:quantumSql%40123@db:3306/almari_db"
       JWT_SECRET: "quantum_almari_secret_jwt_key_2026"
+      SEED_DATABASE: "false"
+      FORCE_RESET_DATABASE: "false"
+      SITE_URL: "https://ealmari.com.np"
     ports:
       - "5000:5000"
+    volumes:
+      - almari_uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -60,6 +65,8 @@ services:
 
 volumes:
   mysql_data:
+    driver: local
+  almari_uploads:
     driver: local
 
 networks:

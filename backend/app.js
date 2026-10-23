@@ -41,6 +41,22 @@ app.use('/api/conversations', require('./routes/messages'));
 app.use('/api/homepage', require('./routes/homepage'));
 app.use('/api/advanced-settings', require('./routes/advancedSettings'));
 
+// Serve uploaded assets statically if stored on disk
+const path = require('path');
+const fs = require('fs');
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsDir));
+
+// Dynamic SEO Sitemap & Robots
+const { sitemapRouter, robotsRouter } = require('./routes/sitemap');
+app.use('/api/sitemap.xml', sitemapRouter);
+app.use('/sitemap.xml', sitemapRouter);
+app.use('/api/robots.txt', robotsRouter);
+app.use('/robots.txt', robotsRouter);
+
 // Socket.IO connection handling
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);

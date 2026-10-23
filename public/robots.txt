@@ -1,0 +1,24 @@
+# eAlmari Production Robots Configuration
+User-agent: *
+Allow: /
+Allow: /shop
+Allow: /about
+Allow: /blog
+Allow: /coupons
+Allow: /offers
+Allow: /product/
+
+# Disallow administrative, private, checkout, and account areas
+Disallow: /admin
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+Disallow: /cart
+Disallow: /checkout
+Disallow: /profile
+Disallow: /order/
+
+# Host and Sitemap
+Host: ealmari.com.np
+Sitemap: https://ealmari.com.np/sitemap.xml

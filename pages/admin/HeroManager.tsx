@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { apiService } from '../../services/api';
 import { SiteCustomization } from '../../types';
+import { ImageUploadOrUrl } from '../../components/admin/ImageUploadOrUrl';
 
 export const HeroManager: React.FC = () => {
   const [settings, setSettings] = useState<Partial<SiteCustomization>>({});
@@ -117,26 +118,20 @@ export const HeroManager: React.FC = () => {
           <div className="p-8 space-y-6">
             {(settings.heroSlides || []).map((slide, index) => (
               <div key={index} className="group relative bg-gray-50/50 border border-gray-100 rounded-[2rem] p-6 hover:bg-white hover:shadow-xl hover:shadow-gray-200/40 transition-all duration-300">
-                <div className="grid grid-cols-1 lg:grid-cols-[180px_1fr] gap-8">
-                  {/* Small Preview Area */}
+                <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-8">
+                  {/* Image Selector Area */}
                   <div className="space-y-3">
-                    <div className="aspect-[4/5] bg-white rounded-2xl border border-gray-200 overflow-hidden flex items-center justify-center relative shadow-sm">
-                      {slide.image ? (
-                        <img src={slide.image} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <ImageIcon size={32} className="text-gray-200" />
-                      )}
-                    </div>
-                    <input 
-                      type="text"
-                      placeholder="Image URL..."
+                    <ImageUploadOrUrl
+                      label="Slide Image"
                       value={slide.image || ''}
-                      onChange={(e) => {
+                      onChange={(newImage) => {
                         const slides = [...(settings.heroSlides || [])];
-                        slides[index].image = e.target.value;
+                        slides[index].image = newImage;
                         update('heroSlides', slides);
                       }}
-                      className="w-full text-[10px] px-3 py-2 bg-white border border-gray-100 rounded-lg outline-none focus:ring-1 focus:ring-blue-500"
+                      aspectRatio="aspect-[4/3] lg:aspect-[4/5]"
+                      placeholder="Image URL or upload file..."
+                      helperText="Supports URL or direct file upload (JPG, PNG, WebP)"
                     />
                   </div>
 
@@ -274,9 +269,17 @@ export const HeroManager: React.FC = () => {
           <div className="p-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             {(settings.heroBottomCards || []).map((card, index) => (
               <div key={index} className="bg-gray-50/50 border border-gray-100 rounded-3xl p-6 space-y-4">
-                <div className="aspect-[4/3] bg-white rounded-2xl border border-gray-200 overflow-hidden flex items-center justify-center relative mb-4">
-                  {card.image ? <img src={card.image} alt="" className="w-full h-full object-cover" /> : <ImageIcon size={20} className="text-gray-200" />}
-                </div>
+                <ImageUploadOrUrl
+                  label="Promo Card Image"
+                  value={card.image || ''}
+                  onChange={(newImage) => {
+                    const cards = [...(settings.heroBottomCards || [])];
+                    cards[index].image = newImage;
+                    update('heroBottomCards', cards);
+                  }}
+                  aspectRatio="aspect-[16/9]"
+                  placeholder="Image URL or upload..."
+                />
                 <div className="space-y-3">
                   <Field label="Eyebrow" value={card.eyebrow} onChange={(v) => {
                     const cards = [...(settings.heroBottomCards || [])];
@@ -293,12 +296,7 @@ export const HeroManager: React.FC = () => {
                     cards[index].badge = v;
                     update('heroBottomCards', cards);
                   }} />
-                  <Field label="Image URL" value={card.image} onChange={(v) => {
-                    const cards = [...(settings.heroBottomCards || [])];
-                    cards[index].image = v;
-                    update('heroBottomCards', cards);
-                  }} />
-                  <Field label="Link URL" value={card.link} onChange={(v) => {
+                  <Field label="Link URL" value={card.link || card.buttonUrl || ''} onChange={(v) => {
                     const cards = [...(settings.heroBottomCards || [])];
                     cards[index].link = v;
                     update('heroBottomCards', cards);
@@ -347,27 +345,33 @@ export const HeroManager: React.FC = () => {
           <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
             {(settings.heroSideCards || []).map((card, index) => (
               <div key={index} className="bg-gray-50/50 border border-gray-100 rounded-3xl p-6 space-y-4">
-                <div className="flex gap-4">
-                  <div className="w-24 h-24 bg-white rounded-2xl border border-gray-200 overflow-hidden flex items-center justify-center relative">
-                    {card.image ? <img src={card.image} alt="" className="w-full h-full object-contain" /> : <ImageIcon size={20} className="text-gray-200" />}
-                  </div>
-                  <div className="flex-1 space-y-3">
-                    <Field label="Eyebrow" value={card.eyebrow} onChange={(v) => {
-                      const cards = [...(settings.heroSideCards || [])];
-                      cards[index].eyebrow = v;
-                      update('heroSideCards', cards);
-                    }} />
-                    <Field label="Title" value={card.title} onChange={(v) => {
-                      const cards = [...(settings.heroSideCards || [])];
-                      cards[index].title = v;
-                      update('heroSideCards', cards);
-                    }} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="Image URL" value={card.image} onChange={(v) => {
+                <ImageUploadOrUrl
+                  label="Side Card Image"
+                  value={card.image || ''}
+                  onChange={(newImage) => {
                     const cards = [...(settings.heroSideCards || [])];
-                    cards[index].image = v;
+                    cards[index].image = newImage;
+                    update('heroSideCards', cards);
+                  }}
+                  aspectRatio="aspect-[16/9]"
+                  placeholder="Image URL or upload..."
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="Eyebrow" value={card.eyebrow} onChange={(v) => {
+                    const cards = [...(settings.heroSideCards || [])];
+                    cards[index].eyebrow = v;
+                    update('heroSideCards', cards);
+                  }} />
+                  <Field label="Title" value={card.title} onChange={(v) => {
+                    const cards = [...(settings.heroSideCards || [])];
+                    cards[index].title = v;
+                    update('heroSideCards', cards);
+                  }} />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="Button URL" value={card.buttonUrl || '/shop'} onChange={(v) => {
+                    const cards = [...(settings.heroSideCards || [])];
+                    cards[index].buttonUrl = v;
                     update('heroSideCards', cards);
                   }} />
                   <Field label="Background" type="color" value={card.backgroundColor} onChange={(v) => {
@@ -446,11 +450,17 @@ export const HeroManager: React.FC = () => {
                     }} />
                   </div>
                   <div className="space-y-4">
-                    <Field label="Image URL" value={banner.image} onChange={(v) => {
-                      const banners = [...(settings.promoBanners || [])];
-                      banners[index].image = v;
-                      update('promoBanners', banners);
-                    }} />
+                    <ImageUploadOrUrl
+                      label="Banner Image"
+                      value={banner.image || ''}
+                      onChange={(newImage) => {
+                        const banners = [...(settings.promoBanners || [])];
+                        banners[index].image = newImage;
+                        update('promoBanners', banners);
+                      }}
+                      aspectRatio="aspect-[16/9]"
+                      placeholder="Banner image URL or upload..."
+                    />
                     <div>
                       <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Position</label>
                       <select 

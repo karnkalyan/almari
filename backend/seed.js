@@ -3,7 +3,23 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🚀 Starting deep seed process...');
+  console.log('🚀 Checking database state for seed...');
+
+  const forceReset = process.env.FORCE_RESET_DATABASE === 'true';
+
+  // Safeguard: Check if database already contains data
+  const existingProductCount = await prisma.product.count();
+  const existingSettingsCount = await prisma.siteSettings.count();
+
+  if ((existingProductCount > 0 || existingSettingsCount > 0) && !forceReset) {
+    console.log(`🛡️ Database already contains ${existingProductCount} products and ${existingSettingsCount} settings.`);
+    console.log('🛡️ Preserving existing database data and uploaded files. Skipping seed.');
+    return;
+  }
+
+  if (forceReset) {
+    console.log('⚠️ FORCE_RESET_DATABASE=true detected. Proceeding with database wipe...');
+  }
 
   // 1. Cleanup
   console.log('🧹 Cleaning up existing data...');
