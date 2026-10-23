@@ -55,6 +55,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+
+  useEffect(() => {
+    setLogoError(false);
+  }, [site?.logoImage]);
 
   useEffect(() => {
     const socket = io(SOCKET_URL);
@@ -152,12 +157,23 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           } flex flex-col`}
       >
         <div className="p-6 lg:p-8 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[var(--brand-primary)] flex items-center justify-center font-black text-xl shadow-lg shadow-[var(--brand-primary)]/20 border border-white/10">
-              {logoText.charAt(0)}
-            </div>
+          <Link to="/" className="flex items-center gap-3 group">
+            {site?.logoImage && !logoError ? (
+              <div className="h-11 min-w-11 max-w-[140px] rounded-2xl bg-white/10 p-1.5 flex items-center justify-center border border-white/15 overflow-hidden shadow-inner group-hover:border-white/30 transition-all flex-shrink-0">
+                <img
+                  src={site.logoImage}
+                  alt={logoText}
+                  onError={() => setLogoError(true)}
+                  className="max-h-full max-w-full w-auto object-contain"
+                />
+              </div>
+            ) : (
+              <div className="w-10 h-10 rounded-2xl bg-[var(--brand-primary)] flex items-center justify-center font-black text-xl shadow-lg shadow-[var(--brand-primary)]/20 border border-white/10 flex-shrink-0">
+                {logoText.charAt(0)}
+              </div>
+            )}
             <div>
-              <p className="font-black text-xl tracking-tighter leading-none">{logoText}</p>
+              <p className="font-black text-xl tracking-tighter leading-none text-white">{logoText}</p>
               <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mt-1">Admin Suite</p>
             </div>
           </Link>
