@@ -10,7 +10,9 @@ import {
   ArrowDown, 
   Layout, 
   Monitor,
-  LayoutTemplate
+  LayoutTemplate,
+  RefreshCw,
+  Check
 } from 'lucide-react';
 import { apiService } from '../../services/api';
 import { SiteCustomization } from '../../types';
@@ -18,6 +20,8 @@ import { SiteCustomization } from '../../types';
 export const HeroManager: React.FC = () => {
   const [settings, setSettings] = useState<Partial<SiteCustomization>>({});
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   useEffect(() => {
     apiService.getSiteSettings()
@@ -31,29 +35,49 @@ export const HeroManager: React.FC = () => {
       });
   }, []);
 
-  const save = async (newSettings: Partial<SiteCustomization>) => {
+  const handleSave = async () => {
     try {
-      await apiService.updateSiteSetting('site_customization', newSettings);
-      setSettings(newSettings);
-      toast.success('Hero configuration updated');
+      setSaving(true);
+      await apiService.updateSiteSetting('site_customization', settings);
+      setHasUnsavedChanges(false);
+      toast.success('Hero configuration saved successfully');
     } catch (error) {
       toast.error('Failed to save settings');
+    } finally {
+      setSaving(false);
     }
   };
 
   const update = (key: keyof SiteCustomization, value: any) => {
-    const newSettings = { ...settings, [key]: value };
-    save(newSettings);
+    setSettings(prev => ({ ...prev, [key]: value }));
+    setHasUnsavedChanges(true);
   };
 
   if (loading) return <div className="p-8 text-center">Loading configuration...</div>;
 
   return (
-    <div className="space-y-8 pb-20">
-      <div className="flex justify-between items-end">
+    <div className="space-y-8 pb-24">
+      {/* Sticky Header with Save Action */}
+      <div className="sticky top-0 z-20 bg-slate-50/95 backdrop-blur-md py-4 border-b border-gray-200/80 -mt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-800 tracking-tight">Hero & Banners</h1>
           <p className="text-gray-500 font-medium mt-1">Design your storefront's first impression with dynamic sliders and promo cards.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {hasUnsavedChanges && (
+            <span className="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200/80 px-3.5 py-2 rounded-xl animate-pulse flex items-center gap-1.5 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+              Unsaved changes
+            </span>
+          )}
+          <button 
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2.5 px-6 py-3 bg-[var(--brand-primary)] text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-950/20 hover:opacity-95 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+          >
+            {saving ? <RefreshCw className="animate-spin" size={18} /> : <Save size={18} />}
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
         </div>
       </div>
 
@@ -475,19 +499,70 @@ export const HeroManager: React.FC = () => {
           </div>
         </section>
       </div>
+
+      {/* Floating Bottom Bar when changes are made */}
+      {hasUnsavedChanges && (
+        <div className="fixed bottom-6 right-6 sm:right-10 z-40 animate-in slide-in-from-bottom-5 duration-300">
+          <div className="bg-slate-900/95 backdrop-blur-md text-white px-6 py-3.5 rounded-2xl shadow-2xl flex items-center gap-4 border border-slate-700/80">
+            <span className="text-xs font-bold text-amber-400 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+              Unsaved changes pending
+            </span>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="px-5 py-2 bg-[var(--brand-primary)] hover:opacity-90 active:scale-95 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition shadow-md disabled:opacity-50 cursor-pointer"
+            >
+              {saving ? <RefreshCw className="animate-spin" size={14} /> : <Save size={14} />}
+              {saving ? 'Saving...' : 'Save Now'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-const Field: React.FC<{ label: string; value: string; type?: string; onChange: (v: string) => void }> = ({ label, value, type = 'text', onChange }) => (
-  <div>
-    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">{label}</label>
-    <input 
-      type={type}
-      value={value || ''}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full h-11 px-4 bg-white border border-gray-100 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-    />
-  </div>
-);
+const Field: React.FC<{ label: string; value: string; type?: string; onChange: (v: string) => void }> = ({ label, value, type = 'text', onChange }) => {
+  if (type === 'color') {
+    const colorVal = value || '#ffffff';
+    return (
+      <div>
+        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">{label}</label>
+        <div className="flex items-center gap-2.5 p-1.5 bg-white border border-gray-100 rounded-xl focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+          <label 
+            className="relative w-8 h-8 rounded-lg overflow-hidden border border-gray-200 cursor-pointer flex-shrink-0 shadow-inner block hover:scale-105 transition-transform" 
+            style={{ backgroundColor: colorVal }}
+          >
+            <input 
+              type="color"
+              value={colorVal}
+              onChange={(e) => onChange(e.target.value)}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+          </label>
+          <input 
+            type="text"
+            value={colorVal}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full bg-transparent text-xs font-bold uppercase tracking-wider text-slate-700 outline-none"
+            placeholder="#ffffff"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">{label}</label>
+      <input 
+        type={type}
+        value={value || ''}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full h-11 px-4 bg-white border border-gray-100 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+      />
+    </div>
+  );
+};
 
