@@ -6,6 +6,6 @@ const router = express.Router();
 
 router.get('/', getSiteSettings);
 router.get('/:key', getSiteSetting);
-router.post('/', authenticate, authorizeSuperAdmin, updateSiteSetting);
+router.post('/', authenticate, authorizeAdmin, updateSiteSetting);
 
 module.exports = router;

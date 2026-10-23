@@ -19,7 +19,7 @@ export const FooterManager: React.FC = () => {
   const [copyrightText, setCopyrightText] = useState(site.copyrightText || '');
   const [paymentPartners, setPaymentPartners] = useState(site.paymentPartners || []);
 
-  if (user?.role !== 'super_admin') {
+  if (user?.role !== 'super_admin' && user?.role !== 'admin' && user?.role !== 'editor') {
     return <Navigate to="/admin" replace />;
   }
 

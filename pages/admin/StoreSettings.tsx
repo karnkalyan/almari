@@ -35,7 +35,7 @@ export const StoreSettings: React.FC = () => {
     productTemplate: 'classic'
   });
 
-  if (user?.role !== 'super_admin') {
+  if (user?.role !== 'super_admin' && user?.role !== 'admin') {
     return <Navigate to="/admin" replace />;
   }
 

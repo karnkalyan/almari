@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { apiService } from '../../services/api';
 import { SiteCustomization } from '../../types';
+import { useAuth } from '../../contexts/AuthContext';
 
 const defaults: SiteCustomization = {
   storeName: 'eAlmari',
@@ -69,9 +70,17 @@ const defaults: SiteCustomization = {
 type SettingTab = 'brand' | 'header' | 'layout' | 'hero' | 'homepage' | 'navigation' | 'footer' | 'logic';
 
 export const AdminSettings: React.FC = () => {
+  const { user } = useAuth();
   const [settings, setSettings] = useState<SiteCustomization>(defaults);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<SettingTab>('brand');
+  const isSuperAdmin = user?.role === 'super_admin';
+  const [activeTab, setActiveTab] = useState<SettingTab>(isSuperAdmin ? 'brand' : 'header');
+
+  useEffect(() => {
+    if (!isSuperAdmin && activeTab === 'brand') {
+      setActiveTab('header');
+    }
+  }, [isSuperAdmin, activeTab]);
 
   useEffect(() => {
     fetchSettings();
@@ -107,8 +116,8 @@ export const AdminSettings: React.FC = () => {
     }
   };
 
-  const tabs: { id: SettingTab; label: string; icon: any }[] = [
-    { id: 'brand', label: 'Brand & Identity', icon: Palette },
+  const allTabs: { id: SettingTab; label: string; icon: any; superAdminOnly?: boolean }[] = [
+    { id: 'brand', label: 'Brand & Identity', icon: Palette, superAdminOnly: true },
     { id: 'header', label: 'Top Bar & Header', icon: Monitor },
     { id: 'layout', label: 'Layout & Templates', icon: LayoutTemplate },
     { id: 'hero', label: 'Hero & Promotions', icon: Megaphone },
@@ -117,6 +126,8 @@ export const AdminSettings: React.FC = () => {
     { id: 'footer', label: 'Footer & Company', icon: TableProperties },
     { id: 'logic', label: 'Store Logic', icon: Settings2 },
   ];
+
+  const tabs = allTabs.filter(tab => !tab.superAdminOnly || isSuperAdmin);
 
   const ColorInput = ({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) => (
     <div className="space-y-2">
