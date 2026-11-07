@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext, useRef } from 'react';
 import { ShopContext } from '../../App';
 import { apiService } from '../../services/api';
 import toast from 'react-hot-toast';
-import { Palette, Save, RefreshCw, Smartphone, Monitor, Upload, Trash2, Link as LinkIcon, RotateCcw, ShieldAlert, Sparkles, Droplets, QrCode, Globe } from 'lucide-react';
+import { Palette, Save, RefreshCw, Smartphone, Monitor, Upload, Trash2, Link as LinkIcon, RotateCcw, ShieldAlert, Sparkles, Droplets, QrCode, Globe, Phone, Mail, MapPin } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 
@@ -77,48 +77,70 @@ export const BrandIdentity: React.FC = () => {
     storeName: site.storeName || '',
     logoText: site.logoText || '',
     logoImage: site.logoImage || '',
-    favicon: site.favicon || ''
+    favicon: site?.favicon || ''
+  });
+
+  const [contactInfo, setContactInfo] = useState({
+    supportPhone: site?.supportPhone || site?.contact_phone || '',
+    supportEmail: site?.supportEmail || '',
+    address: site?.address || ''
   });
 
   const [merchantQr, setMerchantQr] = useState({
-    merchantQrCode: site.merchantQrCode || '',
-    merchantQrName: site.merchantQrName || 'Fonepay / Bank QR',
-    merchantQrAccountName: site.merchantQrAccountName || 'eAlmari',
-    merchantQrAccountNumber: site.merchantQrAccountNumber || '',
-    merchantQrInstructions: site.merchantQrInstructions || 'Scan this QR code with any mobile banking app, eSewa, or Khalti to complete your payment.'
+    merchantQrCode: site?.merchantQrCode || '',
+    merchantQrName: site?.merchantQrName || 'Fonepay / Bank QR',
+    merchantQrAccountName: site?.merchantQrAccountName || 'eAlmari',
+    merchantQrAccountNumber: site?.merchantQrAccountNumber || '',
+    merchantQrInstructions: site?.merchantQrInstructions || 'Scan this QR code with any mobile banking app, eSewa, or Khalti to complete your payment.'
   });
 
   useEffect(() => {
     setColors({
-      primaryColor: site.primaryColor || '#002D42',
-      secondaryColor: site.secondaryColor || '#475569',
-      tertiaryColor: site.tertiaryColor || '#94a3b8',
-      quaternaryColor: site.quaternaryColor || '#cbd5e1',
-      accentColor: site.accentColor || '#D49B24',
-      accentHighlights: site.accentHighlights || '#F59E0B'
+      primaryColor: site?.primaryColor || '#002D42',
+      secondaryColor: site?.secondaryColor || '#475569',
+      tertiaryColor: site?.tertiaryColor || '#94a3b8',
+      quaternaryColor: site?.quaternaryColor || '#cbd5e1',
+      accentColor: site?.accentColor || '#D49B24',
+      accentHighlights: site?.accentHighlights || '#F59E0B'
     });
     setBranding({
-      storeName: site.storeName || '',
-      logoText: site.logoText || '',
-      logoImage: site.logoImage || '',
-      favicon: site.favicon || ''
+      storeName: site?.storeName || '',
+      logoText: site?.logoText || '',
+      logoImage: site?.logoImage || '',
+      favicon: site?.favicon || ''
+    });
+    setContactInfo({
+      supportPhone: site?.supportPhone || site?.contact_phone || '',
+      supportEmail: site?.supportEmail || '',
+      address: site?.address || ''
     });
     setMerchantQr({
-      merchantQrCode: site.merchantQrCode || '',
-      merchantQrName: site.merchantQrName || 'Fonepay / Bank QR',
-      merchantQrAccountName: site.merchantQrAccountName || 'eAlmari',
-      merchantQrAccountNumber: site.merchantQrAccountNumber || '',
-      merchantQrInstructions: site.merchantQrInstructions || 'Scan this QR code with any mobile banking app, eSewa, or Khalti to complete your payment.'
+      merchantQrCode: site?.merchantQrCode || '',
+      merchantQrName: site?.merchantQrName || 'Fonepay / Bank QR',
+      merchantQrAccountName: site?.merchantQrAccountName || 'eAlmari',
+      merchantQrAccountNumber: site?.merchantQrAccountNumber || '',
+      merchantQrInstructions: site?.merchantQrInstructions || 'Scan this QR code with any mobile banking app, eSewa, or Khalti to complete your payment.'
     });
   }, [site]);
 
   const handleSave = async () => {
     setLoading(true);
     try {
-      const updatedSite = { ...site, ...colors, ...branding, ...merchantQr };
+      const freshSettings = await apiService.getSiteSettings().catch(() => ({}));
+      const baseSite = freshSettings.site_customization || freshSettings.site || site || {};
+      const updatedSite = { 
+        ...baseSite, 
+        ...colors, 
+        ...branding, 
+        ...merchantQr,
+        supportPhone: contactInfo.supportPhone,
+        contact_phone: contactInfo.supportPhone,
+        supportEmail: contactInfo.supportEmail,
+        address: contactInfo.address
+      };
       await apiService.updateSiteSetting('site_customization', updatedSite);
       setSite(updatedSite);
-      toast.success('Brand Identity & Payment QR synchronized across storefront');
+      toast.success('Brand Identity, Contact & Payment QR synchronized across storefront');
     } catch (error) {
       toast.error('Failed to update brand assets');
     } finally {
@@ -327,6 +349,60 @@ export const BrandIdentity: React.FC = () => {
                     placeholder="Paste external image URL..."
                   />
                 </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Store Contact & Helpline Details Card */}
+          <section className="bg-white rounded-[3rem] p-8 md:p-10 shadow-sm border border-gray-100 relative">
+            <div className="flex items-center gap-4 mb-8 pb-8 border-b border-gray-50">
+              <div className="p-3.5 bg-amber-50 text-amber-600 rounded-2xl">
+                <Phone size={24} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-slate-800 tracking-tight">Store Contact & Support Details</h2>
+                <p className="text-sm text-slate-500 font-medium mt-1">Configure your primary support phone, contact email, and office address shown across header and footer.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-2.5">
+                <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em] ml-2 flex items-center gap-2">
+                  <Phone size={13} className="text-amber-500" /> Primary Support Phone
+                </label>
+                <input
+                  type="text"
+                  value={contactInfo.supportPhone}
+                  onChange={(e) => setContactInfo(p => ({ ...p, supportPhone: e.target.value }))}
+                  className="w-full h-14 px-6 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:bg-white focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all font-bold text-slate-800 text-sm"
+                  placeholder="+977 9801234567"
+                />
+              </div>
+
+              <div className="space-y-2.5">
+                <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em] ml-2 flex items-center gap-2">
+                  <Mail size={13} className="text-blue-500" /> Support Email
+                </label>
+                <input
+                  type="email"
+                  value={contactInfo.supportEmail}
+                  onChange={(e) => setContactInfo(p => ({ ...p, supportEmail: e.target.value }))}
+                  className="w-full h-14 px-6 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold text-slate-800 text-sm"
+                  placeholder="hello@ealmari.com"
+                />
+              </div>
+
+              <div className="space-y-2.5">
+                <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em] ml-2 flex items-center gap-2">
+                  <MapPin size={13} className="text-emerald-500" /> Store Address
+                </label>
+                <input
+                  type="text"
+                  value={contactInfo.address}
+                  onChange={(e) => setContactInfo(p => ({ ...p, address: e.target.value }))}
+                  className="w-full h-14 px-6 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:bg-white focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-bold text-slate-800 text-sm"
+                  placeholder="Kathmandu, Nepal"
+                />
               </div>
             </div>
           </section>

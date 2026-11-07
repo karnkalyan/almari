@@ -100,6 +100,7 @@ export const AboutUsManagement: React.FC = () => {
         stat_delivery: settings.stat_delivery,
         stat_support: settings.stat_support,
         contact_phone: settings.contact_phone,
+        supportPhone: settings.contact_phone || currentVal.supportPhone,
         contact_email: settings.contact_email,
         contact_address: settings.contact_address
       };

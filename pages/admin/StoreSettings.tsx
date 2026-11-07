@@ -43,8 +43,10 @@ export const StoreSettings: React.FC = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
+      const fresh = await apiService.getSiteSettings().catch(() => ({}));
+      const baseSite = fresh.site_customization || fresh.site || site || {};
       const updatedSite = { 
-        ...site, 
+        ...baseSite, 
         homepageProductSections, 
         templateSettings,
         topBarEnabled: homepageVisibility.showTopBar,

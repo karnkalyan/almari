@@ -436,10 +436,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             </nav>
           </div>
           
-          <div className="flex items-center gap-2 text-slate-800 font-bold text-sm bg-gray-50 px-4 py-2 rounded-full">
+          <a 
+            href={`tel:${(site.supportPhone || site.contact_phone || "+977 9801234567").replace(/[^\d+]/g, '')}`} 
+            className="flex items-center gap-2 text-slate-800 font-bold text-sm bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded-full transition-colors cursor-pointer"
+          >
              <Phone size={16} className="text-[#E5A823]" />
-             <span>{site.supportPhone || "+977 9801234567"}</span>
-          </div>
+             <span>{site.supportPhone || site.contact_phone || "+977 9801234567"}</span>
+          </a>
         </div>
       </nav>
 
@@ -510,7 +513,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                  </div>
                )}
                <p className="text-gray-500 text-sm mb-6 leading-relaxed">{site.footerAbout || "eAlmari is Nepal's premier online shopping destination. Authentic products, best prices, and fast delivery."}</p>
-               <p className="text-xl font-bold" style={{ color: primaryColor }}>{site.supportPhone || "+977 9801234567"}</p>
+               <a 
+                 href={`tel:${(site.supportPhone || site.contact_phone || "+977 9801234567").replace(/[^\d+]/g, '')}`} 
+                 className="text-xl font-bold hover:underline inline-block mt-1" 
+                 style={{ color: primaryColor }}
+               >
+                 {site.supportPhone || site.contact_phone || "+977 9801234567"}
+               </a>
             </div>
             
             {site.footerColumns && site.footerColumns.length > 0 ? (

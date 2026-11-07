@@ -5,41 +5,61 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🚀 Checking database state for seed...');
 
-  const forceReset = process.env.FORCE_RESET_DATABASE === 'true';
+  const forceReset = process.env.FORCE_RESET_DATABASE === 'true' && process.env.CONFIRM_DATA_DESTRUCTION === 'I_WANT_TO_DELETE_ALL_DATA';
 
-  // Safeguard: Check if database already contains data
-  const existingProductCount = await prisma.product.count();
-  const existingSettingsCount = await prisma.siteSettings.count();
+  // Safeguard: Check if database already contains existing data in any key table
+  const [
+    existingProductCount,
+    existingSettingsCount,
+    existingUserCount,
+    existingCategoryCount,
+    existingOrderCount,
+    existingSectionCount
+  ] = await Promise.all([
+    prisma.product.count().catch(() => 0),
+    prisma.siteSettings.count().catch(() => 0),
+    prisma.user.count().catch(() => 0),
+    prisma.category.count().catch(() => 0),
+    prisma.order.count().catch(() => 0),
+    prisma.homepageSection.count().catch(() => 0)
+  ]);
 
-  if ((existingProductCount > 0 || existingSettingsCount > 0) && !forceReset) {
-    console.log(`🛡️ Database already contains ${existingProductCount} products and ${existingSettingsCount} settings.`);
-    console.log('🛡️ Preserving existing database data and uploaded files. Skipping seed.');
+  const hasExistingData = (
+    existingProductCount > 0 ||
+    existingSettingsCount > 0 ||
+    existingUserCount > 0 ||
+    existingCategoryCount > 0 ||
+    existingOrderCount > 0 ||
+    existingSectionCount > 0
+  );
+
+  if (hasExistingData && !forceReset) {
+    console.log(`🛡️ Database already contains existing records (Products: ${existingProductCount}, Settings: ${existingSettingsCount}, Users: ${existingUserCount}, Categories: ${existingCategoryCount}, Orders: ${existingOrderCount}, Sections: ${existingSectionCount}).`);
+    console.log('🛡️ Preserving existing database data and uploaded media. Never overwriting or wiping database on build.');
     return;
   }
 
   if (forceReset) {
-    console.log('⚠️ FORCE_RESET_DATABASE=true detected. Proceeding with database wipe...');
+    console.log('⚠️ FORCE_RESET_DATABASE=true and CONFIRM_DATA_DESTRUCTION verified. Proceeding with database wipe...');
+    console.log('🧹 Cleaning up existing data...');
+    await prisma.productFlagAssignment.deleteMany();
+    await prisma.productFlag.deleteMany();
+    await prisma.review.deleteMany();
+    await prisma.cartItem.deleteMany();
+    await prisma.wishlistItem.deleteMany();
+    await prisma.orderItem.deleteMany();
+    await prisma.order.deleteMany();
+    await prisma.product.deleteMany();
+    await prisma.category.deleteMany();
+    await prisma.siteSettings.deleteMany();
+    await prisma.brand.deleteMany();
+    await prisma.blogPost.deleteMany();
+    await prisma.chatMessage.deleteMany();
+    await prisma.conversation.deleteMany();
+    await prisma.homepageSectionItem.deleteMany();
+    await prisma.homepageSection.deleteMany();
+    await prisma.address.deleteMany();
   }
-
-  // 1. Cleanup
-  console.log('🧹 Cleaning up existing data...');
-  await prisma.productFlagAssignment.deleteMany();
-  await prisma.productFlag.deleteMany();
-  await prisma.review.deleteMany();
-  await prisma.cartItem.deleteMany();
-  await prisma.wishlistItem.deleteMany();
-  await prisma.orderItem.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.product.deleteMany();
-  await prisma.category.deleteMany();
-  await prisma.siteSettings.deleteMany();
-  await prisma.brand.deleteMany();
-  await prisma.blogPost.deleteMany();
-  await prisma.chatMessage.deleteMany();
-  await prisma.conversation.deleteMany();
-  await prisma.homepageSectionItem.deleteMany();
-  await prisma.homepageSection.deleteMany();
-  await prisma.address.deleteMany();
   // Do NOT delete users by default to avoid losing access, but we will upsert some.
 
   // 1.5. Users
@@ -397,7 +417,7 @@ async function main() {
 
   await prisma.siteSettings.upsert({
     where: { key: 'site_customization' },
-    update: { value: JSON.stringify(siteConfig) },
+    update: {}, // DO NOT OVERWRITE if already exists!
     create: { key: 'site_customization', value: JSON.stringify(siteConfig) }
   });
 
@@ -421,12 +441,7 @@ async function main() {
   for (const sec of defaultSections) {
     const section = await prisma.homepageSection.upsert({
       where: { slug: sec.title.toLowerCase().replace(/ /g, '-') },
-      update: {
-        position: sec.position,
-        isActive: sec.isActive !== undefined ? sec.isActive : true,
-        subtitle: sec.subtitle || null,
-        bannerImage: sec.bannerImage || null
-      },
+      update: {}, // DO NOT OVERWRITE existing customized section
       create: {
         title: sec.title,
         slug: sec.title.toLowerCase().replace(/ /g, '-'),
@@ -438,8 +453,10 @@ async function main() {
       }
     });
 
-    // Clear existing items to prevent duplication
-    await prisma.homepageSectionItem.deleteMany({ where: { sectionId: section.id } });
+    const existingItemsCount = await prisma.homepageSectionItem.count({ where: { sectionId: section.id } });
+    if (existingItemsCount > 0) {
+      continue; // Preserve existing items! Never wipe or overwrite.
+    }
 
     // Seed items for specific sections
     if (sec.sectionType === 'Hero Slider') {

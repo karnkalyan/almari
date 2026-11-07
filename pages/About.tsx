@@ -141,7 +141,9 @@ export const About: React.FC = () => {
                         <div className="w-20 h-20 rounded-[2rem] bg-white/10 flex items-center justify-center text-amber-400 group-hover:bg-amber-400 group-hover:text-slate-900 transition-all duration-500 shadow-xl"><Phone size={32} /></div>
                         <div>
                            <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 mb-2">Call Us</p>
-                           <p className="text-2xl font-black tracking-tight">{site.contact_phone || '+977 9801234567'}</p>
+                           <a href={`tel:${(site.contact_phone || site.supportPhone || '+977 9801234567').replace(/[^\d+]/g, '')}`} className="text-2xl font-black tracking-tight hover:underline inline-block">
+                             {site.contact_phone || site.supportPhone || '+977 9801234567'}
+                           </a>
                         </div>
                      </div>
                      <div className="flex flex-col items-center gap-6 group">

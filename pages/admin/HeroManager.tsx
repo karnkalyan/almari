@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import toast from 'react-hot-toast';
 import { 
   Plus, 
@@ -17,8 +17,10 @@ import {
 import { apiService } from '../../services/api';
 import { SiteCustomization } from '../../types';
 import { ImageUploadOrUrl } from '../../components/admin/ImageUploadOrUrl';
+import { ShopContext } from '../../App';
 
 export const HeroManager: React.FC = () => {
+  const { setSite } = useContext(ShopContext) as any;
   const [settings, setSettings] = useState<Partial<SiteCustomization>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -39,7 +41,12 @@ export const HeroManager: React.FC = () => {
   const handleSave = async () => {
     try {
       setSaving(true);
-      await apiService.updateSiteSetting('site_customization', settings);
+      const fresh = await apiService.getSiteSettings().catch(() => ({}));
+      const baseCustom = fresh.site_customization || fresh.site || {};
+      const merged = { ...baseCustom, ...settings };
+      await apiService.updateSiteSetting('site_customization', merged);
+      setSettings(merged);
+      if (setSite) setSite(merged);
       setHasUnsavedChanges(false);
       toast.success('Hero configuration saved successfully');
     } catch (error) {

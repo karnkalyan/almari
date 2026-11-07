@@ -12,12 +12,37 @@ export const FooterManager: React.FC = () => {
   const { site, setSite } = useContext(ShopContext) as any;
   const [loading, setLoading] = useState(false);
   
-  const [footerAbout, setFooterAbout] = useState(site.footerAbout || '');
-  const [footerColumns, setFooterColumns] = useState(site.footerColumns || []);
-  const [footerBusinessHours, setFooterBusinessHours] = useState(site.footerBusinessHours || '');
-  const [supportPhone, setSupportPhone] = useState(site.supportPhone || '');
-  const [copyrightText, setCopyrightText] = useState(site.copyrightText || '');
-  const [paymentPartners, setPaymentPartners] = useState(site.paymentPartners || []);
+  const [footerAbout, setFooterAbout] = useState(site?.footerAbout || '');
+  const [footerColumns, setFooterColumns] = useState(site?.footerColumns || []);
+  const [footerBusinessHours, setFooterBusinessHours] = useState(site?.footerBusinessHours || '');
+  const [supportPhone, setSupportPhone] = useState(site?.supportPhone || site?.contact_phone || '');
+  const [copyrightText, setCopyrightText] = useState(site?.copyrightText || '');
+  const [paymentPartners, setPaymentPartners] = useState(site?.paymentPartners || []);
+
+  useEffect(() => {
+    apiService.getSiteSettings().then(data => {
+      const s = data.site_customization || data.site || {};
+      if (s) {
+        if (s.footerAbout !== undefined) setFooterAbout(s.footerAbout);
+        if (s.footerColumns) setFooterColumns(s.footerColumns);
+        if (s.footerBusinessHours !== undefined) setFooterBusinessHours(s.footerBusinessHours);
+        if (s.supportPhone || s.contact_phone) setSupportPhone(s.supportPhone || s.contact_phone);
+        if (s.copyrightText !== undefined) setCopyrightText(s.copyrightText);
+        if (s.paymentPartners) setPaymentPartners(s.paymentPartners);
+      }
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (site) {
+      if (site.footerAbout && !footerAbout) setFooterAbout(site.footerAbout);
+      if (site.footerColumns?.length && !footerColumns.length) setFooterColumns(site.footerColumns);
+      if (site.footerBusinessHours && !footerBusinessHours) setFooterBusinessHours(site.footerBusinessHours);
+      if ((site.supportPhone || site.contact_phone) && !supportPhone) setSupportPhone(site.supportPhone || site.contact_phone);
+      if (site.copyrightText && !copyrightText) setCopyrightText(site.copyrightText);
+      if (site.paymentPartners?.length && !paymentPartners.length) setPaymentPartners(site.paymentPartners);
+    }
+  }, [site]);
 
   if (user?.role !== 'super_admin' && user?.role !== 'admin' && user?.role !== 'editor') {
     return <Navigate to="/admin" replace />;
@@ -26,10 +51,21 @@ export const FooterManager: React.FC = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const updatedSite = { ...site, footerAbout, footerColumns, footerBusinessHours, supportPhone, copyrightText, paymentPartners };
+      const fresh = await apiService.getSiteSettings().catch(() => ({}));
+      const baseSite = fresh.site_customization || fresh.site || site || {};
+      const updatedSite = { 
+        ...baseSite, 
+        footerAbout, 
+        footerColumns, 
+        footerBusinessHours, 
+        supportPhone, 
+        contact_phone: supportPhone, // keep in sync
+        copyrightText, 
+        paymentPartners 
+      };
       await apiService.updateSiteSetting('site_customization', updatedSite);
-      setSite(updatedSite);
-      toast.success('Footer architecture updated');
+      setSite?.(updatedSite);
+      toast.success('Footer configuration synchronized');
     } catch (error) {
       toast.error('Failed to save footer settings');
     } finally {

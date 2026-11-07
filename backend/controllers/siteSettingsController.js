@@ -47,38 +47,38 @@ const updateSiteSetting = async (req, res) => {
 
     let finalValue = value;
 
-    // Check if non-super_admin is attempting to change branding
-    if (userRole !== 'super_admin') {
-      if (key === 'branding' || (typeof key === 'string' && key.startsWith('branding_'))) {
-        return res.status(403).json({ message: 'Only Super Admin can modify website branding details' });
+    if (key === 'site_customization') {
+      const existing = await prisma.siteSettings.findUnique({ where: { key } });
+      let existingVal = {};
+      if (existing) {
+        try {
+          existingVal = typeof existing.value === 'string' ? JSON.parse(existing.value) : (existing.value || {});
+        } catch {
+          existingVal = {};
+        }
       }
 
-      if (key === 'site_customization') {
-        const existing = await prisma.siteSettings.findUnique({ where: { key } });
-        let existingVal = {};
-        if (existing) {
-          try {
-            existingVal = typeof existing.value === 'string' ? JSON.parse(existing.value) : (existing.value || {});
-          } catch {
-            existingVal = {};
-          }
-        }
-
-        if (typeof value === 'object' && value !== null) {
-          // Detect whether any branding field has been changed
+      if (typeof value === 'object' && value !== null) {
+        // Check if non-super_admin is attempting to change branding
+        if (userRole !== 'super_admin') {
           const isAttemptingBrandingChange = BRANDING_FIELDS.some(field => {
             const newVal = value[field];
             const oldVal = existingVal[field];
-            if (newVal === undefined && oldVal === undefined) return false;
+            if (newVal === undefined) return false;
             return JSON.stringify(newVal) !== JSON.stringify(oldVal);
           });
 
           if (isAttemptingBrandingChange) {
             return res.status(403).json({ message: 'Only Super Admin can modify website branding details' });
           }
+        }
 
-          // Ensure branding fields are locked to existing database values
-          finalValue = { ...value };
+        // Merge with existing configuration so partial updates (from HeroManager, FooterManager, Branding, etc.)
+        // never wipe out other sections!
+        finalValue = { ...existingVal, ...value };
+
+        // For non-super_admin, ensure branding fields cannot be changed
+        if (userRole !== 'super_admin') {
           for (const field of BRANDING_FIELDS) {
             if (existingVal[field] !== undefined) {
               finalValue[field] = existingVal[field];
@@ -88,6 +88,8 @@ const updateSiteSetting = async (req, res) => {
           }
         }
       }
+    } else if (userRole !== 'super_admin' && (key === 'branding' || (typeof key === 'string' && key.startsWith('branding_')))) {
+      return res.status(403).json({ message: 'Only Super Admin can modify website branding details' });
     }
 
     const setting = await prisma.siteSettings.upsert({
