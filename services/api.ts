@@ -7,6 +7,15 @@ class ApiService {
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
+  private async extractErrorMessage(response: Response, fallback: string): Promise<string> {
+    try {
+      const data = await response.json();
+      return data?.message || fallback;
+    } catch {
+      return fallback;
+    }
+  }
+
   private normalizeProduct(product: any): Product {
     const categoryName = typeof product.category === 'string'
       ? product.category
@@ -107,7 +116,7 @@ class ApiService {
       headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
       body: JSON.stringify(product),
     });
-    if (!response.ok) throw new Error('Failed to create product');
+    if (!response.ok) throw new Error(await this.extractErrorMessage(response, 'Failed to create product'));
     return this.normalizeProduct(await response.json());
   }
 
@@ -117,7 +126,7 @@ class ApiService {
       headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
       body: JSON.stringify(product),
     });
-    if (!response.ok) throw new Error('Failed to update product');
+    if (!response.ok) throw new Error(await this.extractErrorMessage(response, 'Failed to update product'));
     return this.normalizeProduct(await response.json());
   }
 
@@ -126,7 +135,7 @@ class ApiService {
       method: 'DELETE',
       headers: this.getAuthHeaders(),
     });
-    if (!response.ok) throw new Error('Failed to delete product');
+    if (!response.ok) throw new Error(await this.extractErrorMessage(response, 'Failed to delete product'));
   }
 
   // Categories
@@ -142,7 +151,7 @@ class ApiService {
       headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
       body: JSON.stringify(category),
     });
-    if (!response.ok) throw new Error('Failed to create category');
+    if (!response.ok) throw new Error(await this.extractErrorMessage(response, 'Failed to create category'));
     return response.json();
   }
 
@@ -152,13 +161,13 @@ class ApiService {
       headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
       body: JSON.stringify(category),
     });
-    if (!response.ok) throw new Error('Failed to update category');
+    if (!response.ok) throw new Error(await this.extractErrorMessage(response, 'Failed to update category'));
     return response.json();
   }
 
   async deleteCategory(id: string): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/categories/${id}`, { method: 'DELETE', headers: this.getAuthHeaders() });
-    if (!response.ok) throw new Error('Failed to delete category');
+    if (!response.ok) throw new Error(await this.extractErrorMessage(response, 'Failed to delete category'));
   }
 
   async getBrands(): Promise<Brand[]> {
@@ -173,7 +182,7 @@ class ApiService {
       headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
       body: JSON.stringify(brand),
     });
-    if (!response.ok) throw new Error('Failed to create brand');
+    if (!response.ok) throw new Error(await this.extractErrorMessage(response, 'Failed to create brand'));
     return response.json();
   }
 
@@ -183,13 +192,13 @@ class ApiService {
       headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
       body: JSON.stringify(brand),
     });
-    if (!response.ok) throw new Error('Failed to update brand');
+    if (!response.ok) throw new Error(await this.extractErrorMessage(response, 'Failed to update brand'));
     return response.json();
   }
 
   async deleteBrand(id: string): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/brands/${id}`, { method: 'DELETE', headers: this.getAuthHeaders() });
-    if (!response.ok) throw new Error('Failed to delete brand');
+    if (!response.ok) throw new Error(await this.extractErrorMessage(response, 'Failed to delete brand'));
   }
 
   // Orders

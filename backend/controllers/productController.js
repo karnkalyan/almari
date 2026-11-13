@@ -60,18 +60,71 @@ const getProduct = async (req, res) => {
   }
 };
 
+const PRODUCT_FIELDS = [
+  'name', 'shortDescription', 'description', 'longDescription',
+  'price', 'originalPrice', 'discount', 'primaryImage', 'images',
+  'categoryId', 'brandId', 'brand', 'inStock', 'isNew',
+  'weight', 'dimensions', 'tags', 'specifications', 'options',
+  'additionalServices', 'metaTitle', 'metaDescription', 'sku',
+  'isFlashDeal', 'isFeatured', 'isTrending', 'isDynamic',
+  'isBestSeller', 'isRecommended', 'isPopular', 'showOnHomepage',
+];
+
+const parseOptionalFloat = (val) => {
+  if (val === undefined) return undefined;
+  if (val === null || val === '') return null;
+  const num = Number(val);
+  return Number.isFinite(num) ? num : null;
+};
+
+const pickProductData = (body, isCreate = false) => {
+  const data = {};
+  for (const field of PRODUCT_FIELDS) {
+    if (body[field] !== undefined) {
+      data[field] = body[field];
+    }
+  }
+
+  if (data.name !== undefined) data.name = String(data.name).trim();
+  if (data.price !== undefined) {
+    const parsedPrice = Number(data.price);
+    data.price = Number.isFinite(parsedPrice) ? parsedPrice : 0;
+  }
+  if (data.originalPrice !== undefined) data.originalPrice = parseOptionalFloat(data.originalPrice);
+  if (data.discount !== undefined) data.discount = parseOptionalFloat(data.discount);
+  if (data.brandId !== undefined) data.brandId = data.brandId || null;
+  if (data.brand !== undefined) data.brand = data.brand || null;
+  if (data.images !== undefined && !Array.isArray(data.images)) {
+    data.images = data.primaryImage ? [data.primaryImage] : [];
+  }
+
+  if (data.sku !== undefined) {
+    const trimmedSku = String(data.sku || '').trim();
+    data.sku = trimmedSku || (isCreate ? `ALM-${Date.now()}` : undefined);
+  } else if (isCreate) {
+    data.sku = `ALM-${Date.now()}`;
+  }
+
+  if (isCreate && data.description === undefined) {
+    data.description = data.shortDescription || data.name || '';
+  }
+
+  return data;
+};
+
 const createProduct = async (req, res) => {
   try {
-    const { flagIds, ...data } = req.body;
-    // Ensure numeric fields are parsed
-    if (data.price) data.price = parseFloat(data.price);
-    if (data.originalPrice) data.originalPrice = parseFloat(data.originalPrice);
-    if (data.discount) data.discount = parseFloat(data.discount);
-    
+    const { flagIds } = req.body;
+    const data = pickProductData(req.body, true);
+
+    if (!data.name) return res.status(400).json({ message: 'Product name is required' });
+    if (!data.categoryId) return res.status(400).json({ message: 'Category is required' });
+    if (!data.primaryImage) return res.status(400).json({ message: 'Primary image is required' });
+
     const product = await prisma.product.create({
       data: {
         ...data,
-        customFlags: flagIds ? {
+        customFlags: Array.isArray(flagIds) && flagIds.length > 0 ? {
           create: flagIds.map(flagId => ({ flagId }))
         } : undefined
       },
@@ -79,23 +132,23 @@ const createProduct = async (req, res) => {
     });
     res.status(201).json(product);
   } catch (error) {
+    if (error.code === 'P2002') {
+      return res.status(400).json({ message: 'A product with this SKU already exists' });
+    }
     res.status(400).json({ message: error.message });
   }
 };
 
 const updateProduct = async (req, res) => {
   try {
-    const { flagIds, ...data } = req.body;
-    // Ensure numeric fields are parsed
-    if (data.price) data.price = parseFloat(data.price);
-    if (data.originalPrice) data.originalPrice = parseFloat(data.originalPrice);
-    if (data.discount) data.discount = parseFloat(data.discount);
+    const { flagIds } = req.body;
+    const data = pickProductData(req.body, false);
 
     const product = await prisma.product.update({
       where: { id: req.params.id },
       data: {
         ...data,
-        customFlags: flagIds ? {
+        customFlags: Array.isArray(flagIds) ? {
           deleteMany: {},
           create: flagIds.map(flagId => ({ flagId }))
         } : undefined
@@ -104,6 +157,12 @@ const updateProduct = async (req, res) => {
     });
     res.json(product);
   } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    if (error.code === 'P2002') {
+      return res.status(400).json({ message: 'A product with this SKU already exists' });
+    }
     res.status(400).json({ message: error.message });
   }
 };
@@ -125,6 +184,9 @@ const deleteProduct = async (req, res) => {
     });
     res.json({ message: 'Product and all associated records deleted successfully' });
   } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'Product not found' });
+    }
     res.status(500).json({ message: error.message });
   }
 };

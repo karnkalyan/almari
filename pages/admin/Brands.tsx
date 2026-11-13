@@ -34,11 +34,15 @@ export const AdminBrands: React.FC = () => {
       toast.error('Brand name is required');
       return;
     }
-    if (editingId) await apiService.updateBrand(editingId, draft);
-    else await apiService.createBrand(draft);
-    toast.success(`Brand ${editingId ? 'updated' : 'created'}`);
-    resetForm();
-    await loadBrands();
+    try {
+      if (editingId) await apiService.updateBrand(editingId, draft);
+      else await apiService.createBrand(draft);
+      toast.success(`Brand ${editingId ? 'updated' : 'created'}`);
+      resetForm();
+      await loadBrands();
+    } catch (error: any) {
+      toast.error(error?.message || `Failed to ${editingId ? 'update' : 'create'} brand`);
+    }
   };
 
   const deleteBrand = async (id: string) => {

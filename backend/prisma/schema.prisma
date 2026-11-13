@@ -74,7 +74,7 @@ model Category {
   parent      Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
   children    Category[] @relation("CategoryHierarchy")
   name        String @unique @db.VarChar(100)
-  description String?
+  description String? @db.Text
   image       String? @db.LongText
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -86,8 +86,8 @@ model Brand {
   id          String   @id @default(cuid()) @db.VarChar(25)
   name        String   @unique @db.VarChar(100)
   slug        String   @unique @db.VarChar(120)
-  logo        String?
-  description String?
+  logo        String?  @db.LongText
+  description String?  @db.Text
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -98,13 +98,13 @@ model Brand {
 model Product {
   id            String   @id @default(cuid()) @db.VarChar(25)
   name          String
-  shortDescription String?
+  shortDescription String? @db.Text
   description   String   @db.Text
   longDescription String? @db.Text
   price         Float
   originalPrice Float?
   discount      Float?
-  primaryImage  String
+  primaryImage  String   @db.LongText
   images        Json // JSON array of image URLs
   categoryId    String @db.VarChar(25)
   category      Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -122,7 +122,7 @@ model Product {
   options       Json?
   additionalServices Json?
   metaTitle     String?
-  metaDescription String?
+  metaDescription String? @db.Text
   sku           String   @unique @db.VarChar(50)
   isFlashDeal   Boolean  @default(false)
   isFeatured    Boolean  @default(false)

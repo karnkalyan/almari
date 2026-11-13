@@ -34,11 +34,15 @@ export const AdminCategories: React.FC = () => {
       toast.error('Category name is required');
       return;
     }
-    if (editingId) await apiService.updateCategory(editingId, draft);
-    else await apiService.createCategory({ name: draft.name, description: draft.description, parentId: draft.parentId, image: draft.image });
-    toast.success(`Category ${editingId ? 'updated' : 'created'}`);
-    resetForm();
-    await loadCategories();
+    try {
+      if (editingId) await apiService.updateCategory(editingId, draft);
+      else await apiService.createCategory({ name: draft.name, description: draft.description, parentId: draft.parentId, image: draft.image });
+      toast.success(`Category ${editingId ? 'updated' : 'created'}`);
+      resetForm();
+      await loadCategories();
+    } catch (error: any) {
+      toast.error(error?.message || `Failed to ${editingId ? 'update' : 'create'} category`);
+    }
   };
 
   const deleteCategory = async (id: string) => {
