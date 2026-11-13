@@ -8,7 +8,7 @@ done
 echo "✅ MySQL database is reachable!"
 
 echo "🔄 Running database migrations..."
-node ./node_modules/prisma/build/index.js migrate deploy || node ./node_modules/prisma/build/index.js db push
+node ./node_modules/prisma/build/index.js migrate deploy || node ./node_modules/prisma/build/index.js db push --accept-data-loss
 
 # Do not seed by default
 SEED_DATABASE=${SEED_DATABASE:-false}
