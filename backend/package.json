@@ -7,6 +7,7 @@
     "start": "node app.js",
     "dev": "nodemon app.js",
     "seed": "node seed.js",
+    "prisma:generate": "node ./node_modules/prisma/build/index.js generate",
     "clean:seed-data": "node scripts/cleanSeedData.js"
   },
   "keywords": [],
