@@ -7,19 +7,16 @@ while ! nc -z db 3306; do
 done
 echo "✅ MySQL database is reachable!"
 
-echo "🔄 Running database migrations (non-destructive)..."
-# Safely apply pending migrations using local prisma binary without resetting database
-./node_modules/.bin/prisma migrate deploy || ./node_modules/.bin/prisma db push --skip-generate
+echo "🔄 Running database migrations..."
+npx prisma migrate deploy || npx prisma db push
 
-# Never wipe or reset existing data on container build or startup
+# Do not seed by default
 SEED_DATABASE=${SEED_DATABASE:-false}
-FORCE_RESET_DATABASE=${FORCE_RESET_DATABASE:-false}
-
-if [ "$SEED_DATABASE" = "true" ] && [ "$FORCE_RESET_DATABASE" != "true" ]; then
-  echo "🌱 Checking if initial seed is needed for empty tables (SEED_DATABASE=true)..."
+if [ "$SEED_DATABASE" = "true" ]; then
+  echo "🌱 Checking if initial seed is required (SEED_DATABASE=true)..."
   node seed.js || true
 else
-  echo "🛡️ Preserving existing database data and uploaded media (no overwrite, no reset)."
+  echo "🛡️ Preserving existing database data and uploaded media (SEED_DATABASE=false)."
 fi
 
 echo "🚀 Starting Almari Backend server..."

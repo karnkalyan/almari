@@ -11,8 +11,8 @@ RUN npm install
 
 COPY prisma ./prisma/
 
-# Generate Prisma Client using locally installed binary (avoids network/registry calls)
-RUN ./node_modules/.bin/prisma generate
+# Generate Prisma Client
+RUN npx prisma generate
 
 COPY . .
 
