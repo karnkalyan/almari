@@ -8,8 +8,8 @@ done
 echo "✅ MySQL database is reachable!"
 
 echo "🔄 Running database migrations (non-destructive)..."
-# Safely apply pending migrations without resetting database
-npx prisma migrate deploy || npx prisma db push --skip-generate
+# Safely apply pending migrations using local prisma binary without resetting database
+./node_modules/.bin/prisma migrate deploy || ./node_modules/.bin/prisma db push --skip-generate
 
 # Never wipe or reset existing data on container build or startup
 SEED_DATABASE=${SEED_DATABASE:-false}
