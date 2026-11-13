@@ -2,16 +2,20 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install openssl for Prisma, netcat for DB polling, dos2unix to guarantee LF line endings
-RUN apk add --no-cache openssl netcat-openbsd dos2unix
+# Prefer IPv4 DNS resolution (prevents Alpine musl EAI_AGAIN timeouts in Node/npm/Prisma)
+ENV NODE_OPTIONS="--dns-result-order=ipv4first"
+
+# Install openssl & libc6-compat for Prisma, netcat for DB polling, dos2unix for LF line endings
+RUN apk add --no-cache openssl libc6-compat netcat-openbsd dos2unix
 
 COPY package*.json ./
 
-RUN npm install
+RUN npm install --no-audit --no-fund
 
 COPY prisma ./prisma/
 
-# Generate Prisma Client directly with local node (avoids npx network calls during build)
+# Ensure prisma CLI is present and generate Prisma Client directly via node
+RUN test -f ./node_modules/prisma/build/index.js || npm install prisma@6.14.0 --no-save
 RUN node ./node_modules/prisma/build/index.js generate
 
 COPY . .
