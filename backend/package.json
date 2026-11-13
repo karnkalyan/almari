@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "seed": "node seed.js"
+    "seed": "node seed.js",
+    "clean:seed-data": "node scripts/cleanSeedData.js"
   },
   "keywords": [],
   "author": "",

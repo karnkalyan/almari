@@ -110,8 +110,20 @@ const updateProduct = async (req, res) => {
 
 const deleteProduct = async (req, res) => {
   try {
-    await prisma.product.delete({ where: { id: req.params.id } });
-    res.json({ message: 'Product deleted' });
+    const { id } = req.params;
+    await prisma.$transaction(async (tx) => {
+      // 1. Delete dependent items referencing this product
+      await tx.orderItem.deleteMany({ where: { productId: id } });
+      await tx.cartItem.deleteMany({ where: { productId: id } });
+      await tx.wishlistItem.deleteMany({ where: { productId: id } });
+      await tx.review.deleteMany({ where: { productId: id } });
+      await tx.productFlagAssignment.deleteMany({ where: { productId: id } });
+      await tx.flashSaleProduct.deleteMany({ where: { productId: id } });
+
+      // 2. Delete the product itself
+      await tx.product.delete({ where: { id } });
+    });
+    res.json({ message: 'Product and all associated records deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

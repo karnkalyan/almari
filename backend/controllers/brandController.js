@@ -38,8 +38,18 @@ const updateBrand = async (req, res) => {
 
 const deleteBrand = async (req, res) => {
   try {
-    await prisma.brand.delete({ where: { id: req.params.id } });
-    res.json({ message: 'Brand deleted' });
+    const { id } = req.params;
+    await prisma.$transaction(async (tx) => {
+      // Disassociate products referencing this brand so product data is not broken
+      await tx.product.updateMany({
+        where: { brandId: id },
+        data: { brandId: null },
+      });
+
+      // Delete the brand
+      await tx.brand.delete({ where: { id } });
+    });
+    res.json({ message: 'Brand deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

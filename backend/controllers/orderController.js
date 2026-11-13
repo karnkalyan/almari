@@ -198,4 +198,17 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
-module.exports = { getOrders, getOrder, getUserOrders, createOrder, updateOrderStatus };
+const deleteOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.$transaction(async (tx) => {
+      await tx.orderItem.deleteMany({ where: { orderId: id } });
+      await tx.order.delete({ where: { id } });
+    });
+    res.json({ message: 'Order and associated items deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { getOrders, getOrder, getUserOrders, createOrder, updateOrderStatus, deleteOrder };
