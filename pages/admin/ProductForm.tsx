@@ -7,8 +7,24 @@ import { apiService } from '../../services/api';
 import { Brand, Category, Product, ProductAdditionalService, ProductFlag, ProductOption, ProductSpecification, SiteCustomization } from '../../types';
 import { ArrowLeft, ImagePlus, Plus, Save, X } from 'lucide-react';
 
+const slugify = (value: string) =>
+  String(value || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 160);
+
+const buildSkuFromName = (name: string, brand?: string) => {
+  const cleanBrand = String(brand || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 3);
+  const cleanName = String(name || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4) || 'PROD';
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return ['ALM', cleanBrand, cleanName, rand].filter(Boolean).join('-');
+};
+
 const emptyProduct: Partial<Product> = {
   name: '',
+  slug: '',
   shortDescription: '',
   description: '',
   longDescription: '',
@@ -55,6 +71,40 @@ export const AdminProductForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [customFlags, setCustomFlags] = useState<ProductFlag[]>([]);
   const [productFlagIds, setProductFlagIds] = useState<string[]>([]);
+  const [touchedFields, setTouchedFields] = useState<{ slug?: boolean; sku?: boolean; metaTitle?: boolean; metaDescription?: boolean }>({});
+
+  const autoGenerateSeoAndSku = (force = false) => {
+    setFormData(prev => {
+      const name = String(prev.name || '').trim();
+      if (!name) return prev;
+      const brandObj = brands.find(b => b.id === prev.brandId);
+      const brandName = brandObj?.name || prev.brand || '';
+      const next = { ...prev };
+
+      if (force || !touchedFields.slug) {
+        next.slug = slugify(name);
+      }
+      if (force || (!touchedFields.sku && !prev.sku)) {
+        next.sku = buildSkuFromName(name, brandName);
+      }
+      if (force || !touchedFields.metaTitle) {
+        next.metaTitle = (brandName ? `${name} by ${brandName} | Almari` : `${name} | Almari`).slice(0, 160);
+      }
+      if (force || !touchedFields.metaDescription) {
+        const raw = String(prev.shortDescription || prev.description || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        next.metaDescription = raw
+          ? (raw.length > 160 ? `${raw.slice(0, 157).trim()}...` : raw)
+          : `Buy ${name} online at Almari. Fast delivery across Nepal.`.slice(0, 160);
+      }
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (!isEdit && formData.name?.trim()) {
+      autoGenerateSeoAndSku(false);
+    }
+  }, [formData.name, formData.shortDescription, formData.description, formData.brandId, isEdit]);
 
   const maxImageSizeMb = Number(settings.maxProductImageSizeMb || 2);
   const parentCategories = categories.filter(category => !category.parentId);
@@ -258,10 +308,36 @@ export const AdminProductForm: React.FC = () => {
           </Panel>
 
           <Panel title="Pricing & Inventory">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input label="Price (NPR)" type="number" value={String(formData.price || 0)} onChange={value => setField('price', Number(value))} required />
               <Input label="Original Price" type="number" value={String(formData.originalPrice || 0)} onChange={value => setField('originalPrice', Number(value))} />
               <Input label="Discount %" type="number" value={String(formData.discount || 0)} onChange={value => setField('discount', Number(value))} />
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">SKU (Auto-generated)</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const brandObj = brands.find(b => b.id === formData.brandId);
+                      setTouchedFields(prev => ({ ...prev, sku: true }));
+                      setField('sku', buildSkuFromName(formData.name || 'PROD', brandObj?.name || formData.brand));
+                    }}
+                    className="text-xs font-bold text-[var(--brand-primary)] hover:underline"
+                  >
+                    Regenerate
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  value={formData.sku || ''}
+                  placeholder="Auto-generated on save if empty"
+                  onChange={e => {
+                    setTouchedFields(prev => ({ ...prev, sku: true }));
+                    setField('sku', e.target.value);
+                  }}
+                  className="w-full h-10 px-3 bg-white border border-gray-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-[var(--brand-primary)] outline-none"
+                />
+              </div>
             </div>
           </Panel>
 
@@ -410,11 +486,50 @@ export const AdminProductForm: React.FC = () => {
             )}
           </Panel>
 
-          <Panel title="SEO">
+          <Panel title="SEO & Friendly URL">
             <div className="space-y-3">
-              <Input label="Meta Title" value={formData.metaTitle || ''} onChange={value => setField('metaTitle', value)} />
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => autoGenerateSeoAndSku(true)}
+                  className="text-xs font-bold text-[var(--brand-primary)] hover:underline"
+                >
+                  Auto-generate SEO &amp; Slug
+                </button>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">URL Slug</label>
+                <input
+                  type="text"
+                  value={formData.slug || ''}
+                  placeholder="auto-generated-from-product-name"
+                  onChange={e => {
+                    setTouchedFields(prev => ({ ...prev, slug: true }));
+                    setField('slug', slugify(e.target.value));
+                  }}
+                  className="w-full h-10 px-3 bg-white border border-gray-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-[var(--brand-primary)] outline-none"
+                />
+                <p className="text-[11px] text-gray-500 mt-1 truncate">
+                  URL: /product/{formData.slug || slugify(formData.name || '') || 'product-slug'}
+                </p>
+              </div>
+              <Input
+                label="Meta Title"
+                value={formData.metaTitle || ''}
+                onChange={value => {
+                  setTouchedFields(prev => ({ ...prev, metaTitle: true }));
+                  setField('metaTitle', value);
+                }}
+              />
               <label className="block text-sm font-medium text-gray-700">Meta Description</label>
-              <textarea className="w-full min-h-20 p-3 border rounded-lg text-sm" value={formData.metaDescription || ''} onChange={e => setField('metaDescription', e.target.value)} />
+              <textarea
+                className="w-full min-h-20 p-3 border rounded-lg text-sm"
+                value={formData.metaDescription || ''}
+                onChange={e => {
+                  setTouchedFields(prev => ({ ...prev, metaDescription: true }));
+                  setField('metaDescription', e.target.value);
+                }}
+              />
             </div>
           </Panel>
 

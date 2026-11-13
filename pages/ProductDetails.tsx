@@ -44,6 +44,17 @@ export const ProductDetails: React.FC = () => {
       try {
         const found = await apiService.getProduct(id);
         setProduct(found);
+        document.title = found.metaTitle || `${found.name} | ${site?.storeName || 'Almari'}`;
+        const metaDesc = found.metaDescription || found.shortDescription || found.description || '';
+        if (metaDesc) {
+          let metaEl = document.querySelector('meta[name="description"]');
+          if (!metaEl) {
+            metaEl = document.createElement('meta');
+            metaEl.setAttribute('name', 'description');
+            document.head.appendChild(metaEl);
+          }
+          metaEl.setAttribute('content', metaDesc.slice(0, 160));
+        }
         setSelectedImage(0);
         setSelectedServiceTitles([]);
         setWishlistItemId(null);

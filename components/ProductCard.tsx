@@ -58,7 +58,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
       <div className="group bg-white border border-slate-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-slate-200 transition-all duration-300 flex flex-col sm:flex-row h-full">
         <div 
           className="relative w-full sm:w-48 h-48 sm:h-auto bg-slate-50 cursor-pointer flex-shrink-0 overflow-hidden"
-          onClick={() => navigate(`/product/${product.id}`)}
+          onClick={() => navigate(`/product/${product.slug || product.id}`)}
         >
           {renderFlags()}
           <img 
@@ -79,7 +79,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
             </div>
             <h3 
               className="text-base font-bold text-slate-800 hover:text-[var(--brand-primary)] cursor-pointer transition-colors line-clamp-1 mb-2"
-              onClick={() => navigate(`/product/${product.id}`)}
+              onClick={() => navigate(`/product/${product.slug || product.id}`)}
             >
               {product.name}
             </h3>
@@ -122,13 +122,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
   return (
     <div className="group bg-white rounded-2xl overflow-hidden border border-slate-100/90 hover:border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full w-full relative">
       {/* Product Image Area */}
-      <div className="relative w-full aspect-square bg-slate-50 overflow-hidden cursor-pointer" onClick={() => navigate(`/product/${product.id}`)}>
+      <div className="relative w-full aspect-square bg-slate-50 overflow-hidden cursor-pointer" onClick={() => navigate(`/product/${product.slug || product.id}`)}>
         {renderFlags()}
 
         {/* Floating Quick Action Buttons */}
         <div className="absolute top-2.5 right-2.5 z-20 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-300">
            <button 
-             onClick={(e) => { e.stopPropagation(); navigate(`/product/${product.id}`); }} 
+             onClick={(e) => { e.stopPropagation(); navigate(`/product/${product.slug || product.id}`); }} 
              className="w-8 h-8 bg-white/95 backdrop-blur-md rounded-full shadow-md flex items-center justify-center text-slate-600 hover:text-slate-900 hover:scale-110 transition-all" 
              title="Quick View"
            >
@@ -156,7 +156,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
           
           <h3 
             className="font-bold text-slate-800 text-xs md:text-sm leading-snug hover:text-[var(--brand-primary)] cursor-pointer line-clamp-2 min-h-[34px] transition-colors" 
-            onClick={() => navigate(`/product/${product.id}`)}
+            onClick={() => navigate(`/product/${product.slug || product.id}`)}
           >
             {product.name}
           </h3>

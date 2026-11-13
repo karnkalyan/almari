@@ -238,7 +238,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                              {searchSuggestions.map((p: any) => (
                                <Link 
                                  key={p.id} 
-                                 to={`/product/${p.id}`} 
+                                 to={`/product/${p.slug || p.id}`} 
                                  className="flex gap-4 p-4 bg-gray-50/50 hover:bg-white rounded-[1.5rem] border border-transparent hover:border-gray-200 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 group"
                                  onClick={() => {
                                    setSearchTerm("");

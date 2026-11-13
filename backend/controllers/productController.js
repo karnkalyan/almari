@@ -40,8 +40,11 @@ const getProducts = async (req, res) => {
 
 const getProduct = async (req, res) => {
   try {
-    const product = await prisma.product.findUnique({
-      where: { id: req.params.id },
+    const param = req.params.id;
+    const product = await prisma.product.findFirst({
+      where: {
+        OR: [{ slug: param }, { id: param }],
+      },
       include: { 
         category: { include: { parent: true } }, 
         brandRef: true, 
@@ -61,7 +64,7 @@ const getProduct = async (req, res) => {
 };
 
 const PRODUCT_FIELDS = [
-  'name', 'shortDescription', 'description', 'longDescription',
+  'name', 'slug', 'shortDescription', 'description', 'longDescription',
   'price', 'originalPrice', 'discount', 'primaryImage', 'images',
   'categoryId', 'brandId', 'brand', 'inStock', 'isNew',
   'weight', 'dimensions', 'tags', 'specifications', 'options',
@@ -69,6 +72,74 @@ const PRODUCT_FIELDS = [
   'isFlashDeal', 'isFeatured', 'isTrending', 'isDynamic',
   'isBestSeller', 'isRecommended', 'isPopular', 'showOnHomepage',
 ];
+
+const slugify = (value) =>
+  String(value || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 160);
+
+const stripHtml = (value) =>
+  String(value || '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const ensureUniqueSlug = async (rawSlug, excludeId = null) => {
+  const base = slugify(rawSlug) || `product-${Date.now()}`;
+  let candidate = base;
+  let counter = 2;
+
+  while (true) {
+    const existing = await prisma.product.findFirst({
+      where: {
+        slug: candidate,
+        ...(excludeId ? { NOT: { id: excludeId } } : {}),
+      },
+      select: { id: true },
+    });
+    if (!existing) return candidate;
+    candidate = `${base.slice(0, 150)}-${counter}`;
+    counter += 1;
+  }
+};
+
+const generateUniqueSku = async (name, brand, excludeId = null) => {
+  const cleanBrand = String(brand || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 3);
+  const cleanName = String(name || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4) || 'PROD';
+  const prefix = ['ALM', cleanBrand, cleanName].filter(Boolean).join('-');
+
+  for (let i = 0; i < 10; i++) {
+    const rand = Math.floor(1000 + Math.random() * 9000);
+    const candidate = `${prefix}-${rand}`;
+    const existing = await prisma.product.findFirst({
+      where: {
+        sku: candidate,
+        ...(excludeId ? { NOT: { id: excludeId } } : {}),
+      },
+      select: { id: true },
+    });
+    if (!existing) return candidate;
+  }
+  return `${prefix}-${Date.now().toString().slice(-6)}`;
+};
+
+const buildMetaTitle = (name, brand) => {
+  const parts = [String(name || '').trim(), String(brand || '').trim()].filter(Boolean);
+  const title = parts.length > 1 ? `${parts[0]} by ${parts[1]} | Almari` : `${parts[0]} | Almari`;
+  return title.slice(0, 160);
+};
+
+const buildMetaDescription = ({ name, shortDescription, description, longDescription, price }) => {
+  const raw = stripHtml(shortDescription) || stripHtml(description) || stripHtml(longDescription);
+  if (raw) {
+    return raw.length > 160 ? `${raw.slice(0, 157).trim()}...` : raw;
+  }
+  const priceText = Number.isFinite(Number(price)) && Number(price) > 0 ? ` for NPR ${Number(price).toLocaleString()}` : '';
+  return `Buy ${String(name || '').trim()}${priceText} online at Almari. Fast delivery across Nepal.`.slice(0, 160);
+};
 
 const parseOptionalFloat = (val) => {
   if (val === undefined) return undefined;
@@ -86,6 +157,7 @@ const pickProductData = (body, isCreate = false) => {
   }
 
   if (data.name !== undefined) data.name = String(data.name).trim();
+  if (data.slug !== undefined) data.slug = slugify(data.slug);
   if (data.price !== undefined) {
     const parsedPrice = Number(data.price);
     data.price = Number.isFinite(parsedPrice) ? parsedPrice : 0;
@@ -99,10 +171,7 @@ const pickProductData = (body, isCreate = false) => {
   }
 
   if (data.sku !== undefined) {
-    const trimmedSku = String(data.sku || '').trim();
-    data.sku = trimmedSku || (isCreate ? `ALM-${Date.now()}` : undefined);
-  } else if (isCreate) {
-    data.sku = `ALM-${Date.now()}`;
+    data.sku = String(data.sku || '').trim();
   }
 
   if (isCreate && data.description === undefined) {
@@ -121,6 +190,17 @@ const createProduct = async (req, res) => {
     if (!data.categoryId) return res.status(400).json({ message: 'Category is required' });
     if (!data.primaryImage) return res.status(400).json({ message: 'Primary image is required' });
 
+    data.slug = await ensureUniqueSlug(data.slug || data.name);
+    if (!data.sku) {
+      data.sku = await generateUniqueSku(data.name, data.brand);
+    }
+    if (!String(data.metaTitle || '').trim()) {
+      data.metaTitle = buildMetaTitle(data.name, data.brand);
+    }
+    if (!String(data.metaDescription || '').trim()) {
+      data.metaDescription = buildMetaDescription(data);
+    }
+
     const product = await prisma.product.create({
       data: {
         ...data,
@@ -133,7 +213,7 @@ const createProduct = async (req, res) => {
     res.status(201).json(product);
   } catch (error) {
     if (error.code === 'P2002') {
-      return res.status(400).json({ message: 'A product with this SKU already exists' });
+      return res.status(400).json({ message: 'A product with this SKU or slug already exists' });
     }
     res.status(400).json({ message: error.message });
   }
@@ -141,11 +221,44 @@ const createProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   try {
+    const { id } = req.params;
     const { flagIds } = req.body;
     const data = pickProductData(req.body, false);
 
+    const existing = await prisma.product.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    const resolvedName = data.name || existing.name;
+    const resolvedBrand = data.brand !== undefined ? data.brand : existing.brand;
+
+    if (data.slug !== undefined) {
+      data.slug = await ensureUniqueSlug(data.slug || resolvedName, id);
+    } else if (!existing.slug) {
+      data.slug = await ensureUniqueSlug(resolvedName, id);
+    }
+
+    if (data.sku !== undefined && !data.sku) {
+      data.sku = await generateUniqueSku(resolvedName, resolvedBrand, id);
+    } else if (!existing.sku && data.sku === undefined) {
+      data.sku = await generateUniqueSku(resolvedName, resolvedBrand, id);
+    }
+
+    if (data.metaTitle !== undefined && !String(data.metaTitle || '').trim()) {
+      data.metaTitle = buildMetaTitle(resolvedName, resolvedBrand);
+    } else if (!existing.metaTitle && data.metaTitle === undefined) {
+      data.metaTitle = buildMetaTitle(resolvedName, resolvedBrand);
+    }
+
+    if (data.metaDescription !== undefined && !String(data.metaDescription || '').trim()) {
+      data.metaDescription = buildMetaDescription({ ...existing, ...data, name: resolvedName });
+    } else if (!existing.metaDescription && data.metaDescription === undefined) {
+      data.metaDescription = buildMetaDescription({ ...existing, ...data, name: resolvedName });
+    }
+
     const product = await prisma.product.update({
-      where: { id: req.params.id },
+      where: { id },
       data: {
         ...data,
         customFlags: Array.isArray(flagIds) ? {
@@ -161,7 +274,7 @@ const updateProduct = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
     if (error.code === 'P2002') {
-      return res.status(400).json({ message: 'A product with this SKU already exists' });
+      return res.status(400).json({ message: 'A product with this SKU or slug already exists' });
     }
     res.status(400).json({ message: error.message });
   }

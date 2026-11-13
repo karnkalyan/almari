@@ -98,6 +98,7 @@ model Brand {
 model Product {
   id            String   @id @default(cuid()) @db.VarChar(25)
   name          String
+  slug          String?  @unique @db.VarChar(180)
   shortDescription String? @db.Text
   description   String   @db.Text
   longDescription String? @db.Text

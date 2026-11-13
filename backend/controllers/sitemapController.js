@@ -41,7 +41,7 @@ const getSitemap = async (req, res) => {
     // Fetch active products, categories, blogs, brands
     const [products, categories, blogs, brands] = await Promise.all([
       prisma.product.findMany({
-        select: { id: true, name: true, primaryImage: true, updatedAt: true },
+        select: { id: true, slug: true, name: true, primaryImage: true, updatedAt: true },
         take: 5000,
       }),
       prisma.category.findMany({
@@ -84,10 +84,10 @@ const getSitemap = async (req, res) => {
       xml += `  </url>\n`;
     }
 
-    // 2. Product Detail Pages (/product/:id) with Image Extension
+    // 2. Product Detail Pages (/product/:slug) with Image Extension
     for (const prod of products) {
       xml += `  <url>\n`;
-      xml += `    <loc>${escapeXml(`${baseUrl}/product/${prod.id}`)}</loc>\n`;
+      xml += `    <loc>${escapeXml(`${baseUrl}/product/${prod.slug || prod.id}`)}</loc>\n`;
       xml += `    <lastmod>${formatDate(prod.updatedAt)}</lastmod>\n`;
       xml += `    <changefreq>weekly</changefreq>\n`;
       xml += `    <priority>0.8</priority>\n`;
