@@ -4,10 +4,9 @@ import { Link, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { Home, ShoppingCart, User, Search, Menu, Phone, Heart, Grid, X, ChevronDown, MapPin, ChevronRight, LayoutDashboard, ShoppingBag, ShieldCheck, Tag, Ticket, Mail, Facebook, Instagram, Twitter, Youtube } from 'lucide-react';
 import { ChatWidget } from './ChatWidget';
 import { ShopContext } from '../App';
-import { CATEGORIES } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { apiService } from '../services/api';
-import { SiteCustomization } from '../types';
+import { Category, SiteCustomization } from '../types';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -26,7 +25,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [liveCategories, setLiveCategories] = useState<Category[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    apiService.getCategories()
+      .then(data => setLiveCategories(Array.isArray(data) ? data : []))
+      .catch(() => setLiveCategories([]));
+  }, [location.pathname]);
   
   const site = contextSite || {};
   const activeAnnouncements = (site as any).announcements?.filter((a: any) => a.isActive) || [];
@@ -193,7 +199,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                       onChange={(e) => setCategory(e.target.value)}
                     >
                       <option>All Categories</option>
-                      {CATEGORIES.map(cat => <option key={cat}>{cat}</option>)}
+                      {liveCategories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
                   </div>
@@ -379,44 +385,42 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                
                {/* Mega Menu Dropdown */}
                <div className={`absolute top-full left-0 w-[900px] bg-white shadow-2xl border-t-2 rounded-b-lg p-6 transition-all duration-200 transform origin-top ${showMegaMenu ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0 pointer-events-none'}`} style={{ borderTopColor: accentColor }}>
-                 <div className="grid grid-cols-4 gap-8">
-                    <div>
-                      <h4 className="font-bold text-[var(--brand-primary)] mb-4 flex items-center gap-2 border-b pb-2">
-                         <span className="text-[#E5A823]">●</span> Grocery
-                      </h4>
-                      <ul className="space-y-2">
-                        {CATEGORIES.slice(0, 5).map(cat => (
-                           <li key={cat}><Link to={`/shop?category=${encodeURIComponent(cat)}`} className="text-sm text-gray-600 hover:text-[var(--brand-primary)] hover:font-bold transition-colors block py-1">{cat}</Link></li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-[var(--brand-primary)] mb-4 flex items-center gap-2 border-b pb-2">
-                         <span className="text-[#E5A823]">●</span> Essentials
-                      </h4>
-                      <ul className="space-y-2">
-                        {CATEGORIES.slice(5, 9).map(cat => (
-                           <li key={cat}><Link to={`/shop?category=${encodeURIComponent(cat)}`} className="text-sm text-gray-600 hover:text-[var(--brand-primary)] hover:font-bold transition-colors block py-1">{cat}</Link></li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-[var(--brand-primary)] mb-4 flex items-center gap-2 border-b pb-2">
-                         <span className="text-[#E5A823]">●</span> Lifestyle
-                      </h4>
-                      <ul className="space-y-2">
-                        {CATEGORIES.slice(9, 12).map(cat => (
-                           <li key={cat}><Link to={`/shop?category=${encodeURIComponent(cat)}`} className="text-sm text-gray-600 hover:text-[var(--brand-primary)] hover:font-bold transition-colors block py-1">{cat}</Link></li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="bg-[#f0f9ff] rounded-lg p-4 flex flex-col items-center justify-center text-center">
-                       <span className="text-[#E5A823] font-bold text-xs uppercase tracking-widest mb-2">Special Offer</span>
-                       <h3 className="text-[#002f4a] font-bold text-lg mb-2">Organic Foods</h3>
-                       <p className="text-sm text-gray-500 mb-4">Get 20% off on all organic vegetables this weekend.</p>
-                       <Link to="/shop" className="text-sm font-bold text-[#002f4a] underline decoration-[#E5A823] underline-offset-4">Shop Now</Link>
-                    </div>
-                 </div>
+                 {liveCategories.length === 0 ? (
+                   <div className="py-6 text-center text-sm text-gray-500">
+                     No categories available yet. <Link to="/shop" className="font-bold text-[var(--brand-primary)] underline">Browse all products</Link>
+                   </div>
+                 ) : (
+                   <div className="grid grid-cols-3 gap-6">
+                     {(() => {
+                       const parentCats = liveCategories.filter(c => !c.parentId);
+                       const displayCols = parentCats.length > 0 ? parentCats.slice(0, 6) : liveCategories.slice(0, 6);
+                       return displayCols.map(parent => {
+                         const children = liveCategories.filter(c => c.parentId === parent.id);
+                         return (
+                           <div key={parent.id}>
+                             <h4 className="font-bold text-[var(--brand-primary)] mb-3 flex items-center gap-2 border-b pb-2">
+                               <span className="text-[#E5A823]">●</span>
+                               <Link to={`/shop?category=${encodeURIComponent(parent.name)}`} className="hover:underline">
+                                 {parent.name}
+                               </Link>
+                             </h4>
+                             {children.length > 0 && (
+                               <ul className="space-y-1.5">
+                                 {children.map(sub => (
+                                   <li key={sub.id}>
+                                     <Link to={`/shop?category=${encodeURIComponent(sub.name)}`} className="text-sm text-gray-600 hover:text-[var(--brand-primary)] hover:font-bold transition-colors block py-0.5">
+                                       {sub.name}
+                                     </Link>
+                                   </li>
+                                 ))}
+                               </ul>
+                             )}
+                           </div>
+                         );
+                       });
+                     })()}
+                   </div>
+                 )}
                </div>
             </div>
 

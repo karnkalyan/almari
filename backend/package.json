@@ -8,7 +8,8 @@
     "dev": "nodemon app.js",
     "seed": "node seed.js",
     "prisma:generate": "node ./node_modules/prisma/build/index.js generate",
-    "clean:seed-data": "node scripts/cleanSeedData.js"
+    "clean:seed-data": "node scripts/cleanSeedData.js",
+    "clean:catalog": "node scripts/cleanSeedData.js --include-brands"
   },
   "keywords": [],
   "author": "",

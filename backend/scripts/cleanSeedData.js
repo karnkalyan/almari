@@ -15,6 +15,7 @@
 const prisma = require('../prismaClient');
 
 const STAFF_ROLES = ['super_admin', 'admin', 'editor', 'sell_staff', 'crm_staff'];
+const includeBrands = process.argv.includes('--include-brands') || process.argv.includes('--all');
 
 async function cleanSeedData() {
   console.log('====================================================');
@@ -41,9 +42,13 @@ async function cleanSeedData() {
     const customerIds = customerUsers.map(u => u.id);
     console.log(`👤 Identified ${customerIds.length} customer user accounts to remove.\n`);
 
-    // 3. Count brands to confirm preservation
+    // 3. Count brands to confirm preservation or removal
     const brandCount = await prisma.brand.count();
-    console.log(`🏷️ Preserving all ${brandCount} Brand records intact.\n`);
+    if (includeBrands) {
+      console.log(`🏷️ Removing all ${brandCount} Brand records (--include-brands).\n`);
+    } else {
+      console.log(`🏷️ Preserving all ${brandCount} Brand records intact.\n`);
+    }
 
     console.log('🔄 Executing transactional cleanup in safe dependency order...');
 
@@ -99,6 +104,12 @@ async function cleanSeedData() {
       });
       const deletedCategories = await tx.category.deleteMany();
 
+      // Step H: Optionally delete all Brands when --include-brands or --all is passed
+      let deletedBrands = { count: 0 };
+      if (includeBrands) {
+        deletedBrands = await tx.brand.deleteMany();
+      }
+
       return {
         reviews: deletedReviews.count,
         cartItems: deletedCartItems.count,
@@ -113,7 +124,8 @@ async function cleanSeedData() {
         customerConversations: deletedConversations.count,
         customers: deletedCustomers.count,
         products: deletedProducts.count,
-        categories: deletedCategories.count
+        categories: deletedCategories.count,
+        brands: deletedBrands.count
       };
     });
 
@@ -121,6 +133,7 @@ async function cleanSeedData() {
     console.log('📊 Summary of deleted seed/demo items:');
     console.log(`   - Products: ${results.products}`);
     console.log(`   - Categories: ${results.categories}`);
+    if (includeBrands) console.log(`   - Brands: ${results.brands}`);
     console.log(`   - Orders: ${results.orders} (${results.orderItems} order items)`);
     console.log(`   - Customers: ${results.customers} (${results.customerAddresses} addresses)`);
     console.log(`   - Reviews: ${results.reviews}`);
@@ -128,7 +141,7 @@ async function cleanSeedData() {
     console.log(`   - Flash Sales: ${results.flashSales} sales (${results.flashSaleProducts} items)`);
     console.log('');
     console.log('🛡️ Preserved:');
-    console.log(`   - ${brandCount} Brands (unmodified)`);
+    if (!includeBrands) console.log(`   - ${brandCount} Brands (unmodified)`);
     console.log(`   - ${staffUsers.length} Admin/Staff logins (unmodified)`);
     console.log('   - Store settings, Hero banners, Navigation & Footer (unmodified)');
     console.log('====================================================\n');
