@@ -70,10 +70,10 @@ async function cleanSeedData() {
           where: { userId: { in: customerIds } }
         });
         deletedChatMessages = await tx.chatMessage.deleteMany({
-          where: { senderId: { in: customerIds } }
+          where: { conversation: { userId: { in: customerIds } } }
         });
         deletedConversations = await tx.conversation.deleteMany({
-          where: { customerId: { in: customerIds } }
+          where: { userId: { in: customerIds } }
         });
       }
 
@@ -93,7 +93,10 @@ async function cleanSeedData() {
       // Step F: Delete all Products
       const deletedProducts = await tx.product.deleteMany();
 
-      // Step G: Delete all Categories
+      // Step G: Clear parentId hierarchy and delete all Categories
+      await tx.category.updateMany({
+        data: { parentId: null }
+      });
       const deletedCategories = await tx.category.deleteMany();
 
       return {
